@@ -38,38 +38,47 @@ cor_rm<-function(x, y){
 # cor(x,y)
 # cor_rm(x,y)
 
-BEF_sim_simple<-map_dfr(cor_vec, function(rare_ef_cor){
-  # abundance: species in rows, communities in columns
-  ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
-  rarities = apply(ab, 2, to_rare)
-  # for all these communities in this iteration, set per-capita function based on species abundance
-  ef = apply(ab, 2, function(x){simcor(to_rare(x), correlation = rare_ef_cor)})
-  # summarize ef
-  species_ef = ab*ef
-  per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
-  total_ef = apply(species_ef, 2, sum)
-    map_dfr(ell_vec, function(ell){
-      D = apply(ab, 2, function(x){rarity(x, l = ell)})
-      per_capita_BEF = cor_rm(D, per_capita_ef)^2
-      per_community_BEF = cor_rm(D, total_ef)^2
-      return(data.frame(rare_ef_cor
-                        , ell
-                        , v_rich = var(apply(ab, 2, function(x){sum(x>0)}))
-                        , per_capita_BEF
-                        , per_community_BEF))
-    })
-})
+reps<-999
 
+BEF_sim_simple<-map_dfr(1:reps, function(iter){
+  map_dfr(cor_vec, function(rare_ef_cor){
+    # abundance: species in rows, communities in columns
+    ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
+    rarities = apply(ab, 2, to_rare)
+    # for all these communities in this iteration, set per-capita function based on species abundance
+    ef = apply(ab, 2, function(x){simcor(to_rare(x), correlation = rare_ef_cor)})
+    # summarize ef
+    species_ef = ab*ef
+    per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
+    total_ef = apply(species_ef, 2, sum)
+      map_dfr(ell_vec, function(ell){
+        D = apply(ab, 2, function(x){rarity(x, l = ell)})
+        per_capita_BEF = cor_rm(D, per_capita_ef)^2
+        per_community_BEF = cor_rm(D, total_ef)^2
+        return(data.frame(rare_ef_cor
+                          , ell
+                          , v_rich = var(apply(ab, 2, function(x){sum(x>0)}))
+                          , per_capita_BEF
+                          , per_community_BEF))
+      })
+  })
+})
 # check variation in richness as driver
+
+BEF_summary<-BEF_sim_simple %>% 
+  group_by(rare_ef_cor, ell) %>% 
+  summarize_all(.funs = "mean")
+
+BEF_summary
  
-BEF_sim_simple %>% ggplot(aes(v_rich, per_community_BEF))+
+BEF_summary %>% ggplot(aes(v_rich, per_community_BEF))+
   geom_point() + # will funnel out if this is the thing (variation in bef increasing with variation in richness)
   theme_classic() +
   labs(x = ("variance in richness")) 
 
 pdf("figures/basic_simulation_heatmaps.pdf")
 # make heatmap for per-capita function
-BEF_sim_simple %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
+BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
@@ -79,7 +88,7 @@ BEF_sim_simple %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
 
 # make heatmap for total function
 
-BEF_sim_simple %>% ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
+BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
