@@ -43,7 +43,7 @@ BEF_sim_simple<-map_dfr(cor_vec, function(rare_ef_cor){
   ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
   rarities = apply(ab, 2, to_rare)
   # for all these communities in this iteration, set per-capita function based on species abundance
-  ef = apply(ab, 2, function(x){simcor(x/sum(x), correlation = rare_ef_cor)})
+  ef = apply(ab, 2, function(x){simcor(to_rare(x), correlation = rare_ef_cor)})
   # summarize ef
   species_ef = ab*ef
   per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
