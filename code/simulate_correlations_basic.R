@@ -1,8 +1,8 @@
 # script by michael roswell to simulate parameter space
 library(tidyverse)
 library(MeanRarity)
-# library(tictoc)
-# library(furrr)
+library(tictoc)
+library(furrr)
 # function to simulate correlated vector 
 # from https://stackoverflow.com/a/52880462/8400969
 
@@ -20,7 +20,8 @@ simcor <- function (x, ymean=0, ysd=1, correlation=0) {
 
 n_sp <- 150 # number of possible species
 n_comm <- 20 # number of communities
-ab_mean <- 10 # mean abundance per community
+ab_mean <- 10 # mean species abundance per community
+ab_sd <- 2 # sd of mean species abundance across communities
 ab_disp <- 0.2 # dispersion of negative binomial
 cor_vec<-seq(-0.8,0.8,0.1) # correlation between species abundance and per-capita ecosystem function
 ell_vec<-seq(-2,2,0.1)
@@ -40,10 +41,16 @@ cor_rm<-function(x, y){
 
 reps<-999
 
-BEF_sim_simple<-map_dfr(1:reps, function(iter){
+nc <- 7 # cores for parallelization
+plan(strategy = multiprocess, workers = nc)
+
+tic()
+BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
   map_dfr(cor_vec, function(rare_ef_cor){
     # abundance: species in rows, communities in columns
-    ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
+    # ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
+    # in v2, add variation in community size
+    ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = rnorm(1, mean = ab_mean, sd = ab_sd))})
     rarities = apply(ab, 2, to_rare)
     # for all these communities in this iteration, set per-capita function based on species abundance
     ef = apply(ab, 2, function(x){simcor(to_rare(x), correlation = rare_ef_cor)})
@@ -63,18 +70,18 @@ BEF_sim_simple<-map_dfr(1:reps, function(iter){
       })
   })
 })
+toc() # 5.5 minutes on MR macbook pro
 # check variation in richness as driver
 
 BEF_summary<-BEF_sim_simple %>% 
   group_by(rare_ef_cor, ell) %>% 
   summarize_all(.funs = "mean")
 
-BEF_summary
  
-BEF_summary %>% ggplot(aes(v_rich, per_community_BEF))+
-  geom_point() + # will funnel out if this is the thing (variation in bef increasing with variation in richness)
-  theme_classic() +
-  labs(x = ("variance in richness")) 
+# BEF_summary %>% ggplot(aes(v_rich, per_community_BEF))+
+#   geom_point() + # will funnel out if this is the thing (variation in bef increasing with variation in richness)
+#   theme_classic() +
+#   labs(x = ("variance in richness")) 
 
 pdf("figures/basic_simulation_heatmaps.pdf")
 # make heatmap for per-capita function
