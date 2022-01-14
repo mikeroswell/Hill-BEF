@@ -46,13 +46,15 @@ Hill-BEF
 | .gitignore
 |
 ----- code
-|     |BEF_Hill_mg.R  # main analysis file
+|     | BEF_Hill_mg.R  # main analysis file
+|     | simulate_correlations_basic.R # explore parameter space for underlying, abstract, non-biological relationships
 | 
 ----- data
-|     |a.list.rds # for now data in .rds file
-|      z.list.rds # for now data in .rds file
+|     | a.list.rds # for now data in .rds file
+|     | z.list.rds # for now data in .rds file
 |
 ----- figures
+      | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
 ```
 
 
