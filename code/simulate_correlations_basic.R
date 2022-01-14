@@ -38,12 +38,12 @@ cor_rm<-function(x, y){
 # cor(x,y)
 # cor_rm(x,y)
 
-BEF_sim_simple<-map_dfr(cor_vec, function(ab_ef_cor){
+BEF_sim_simple<-map_dfr(cor_vec, function(rare_ef_cor){
   # abundance: species in rows, communities in columns
   ab = sapply(1:n_comm, function(x){rnbinom(n_sp, size = ab_disp, mu = ab_mean)})
   rarities = apply(ab, 2, to_rare)
   # for all these communities in this iteration, set per-capita function based on species abundance
-  ef = apply(ab, 2, function(x){simcor(x, correlation = ab_ef_cor)})
+  ef = apply(ab, 2, function(x){simcor(x/sum(x), correlation = rare_ef_cor)})
   # summarize ef
   species_ef = ab*ef
   per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
@@ -52,7 +52,7 @@ BEF_sim_simple<-map_dfr(cor_vec, function(ab_ef_cor){
       D = apply(ab, 2, function(x){rarity(x, l = ell)})
       per_capita_BEF = cor_rm(D, per_capita_ef)^2
       per_community_BEF = cor_rm(D, total_ef)^2
-      return(data.frame(ab_ef_cor
+      return(data.frame(rare_ef_cor
                         , ell
                         , v_rich = var(apply(ab, 2, function(x){sum(x>0)}))
                         , per_capita_BEF
@@ -69,21 +69,21 @@ BEF_sim_simple %>% ggplot(aes(v_rich, per_community_BEF))+
 
 pdf("figures/basic_simulation_heatmaps.pdf")
 # make heatmap for per-capita function
-BEF_sim_simple %>% ggplot(aes(ab_ef_cor, ell, fill = per_capita_BEF))+
+BEF_sim_simple %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  labs(x = "cor(abundance, per-capita ef)"
+  labs(x = "cor(rarity, per-capita ef)"
          , y = "Hill scaling exponent ell"
          , fill = "BEF (per-capita) r2")
 
 # make heatmap for total function
 
-BEF_sim_simple %>% ggplot(aes(ab_ef_cor, ell, fill = per_community_BEF))+
+BEF_sim_simple %>% ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  labs(x = "cor(abundance, per-capita ef)"
+  labs(x = "cor(rarity, per-capita ef)"
        , y = "Hill scaling exponent ell"
        , fill = "BEF (per-community) r2")
 
