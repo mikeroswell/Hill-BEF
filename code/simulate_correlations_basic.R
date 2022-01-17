@@ -26,7 +26,14 @@ ab_disp <- 0.2 # dispersion of negative binomial
 cor_vec<-seq(-0.8,0.8,0.1) # correlation between species abundance and per-capita ecosystem function
 ell_vec<-seq(-2,2,0.1)
 
-to_rare<-function(x){x/sum(x)}
+to_rare<-function(x){
+  sapply(x, function(y){
+    ifelse(y>0, sum(x)/y, y)
+  })
+  }
+
+
+
 nonzero <-function(x, y){x[(x*y)!=0]}
 #ignore non-functionals (absent or 0 function)
 cor_rm<-function(x, y){
