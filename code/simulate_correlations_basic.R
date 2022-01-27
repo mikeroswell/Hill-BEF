@@ -54,7 +54,7 @@ ell_vec<-seq(-3,3,0.25)
 # cor_rm(Ln(x), Ln(y))
 
 
-reps<-999
+reps<-99
 
 # testing values for simulation
 # iter<-1
@@ -79,7 +79,7 @@ BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
     rarities = apply(ab, 2, to_rare)
     # for all these communities in this iteration, set per-capita function based on species abundance
     map_dfr(ef_sd, function(fvar){
-      ef = apply(ab, 2, function(x){simcor(to_rare(x)
+      ef_base = apply(ab, 2, function(x){simcor(to_rare(x)
                                            , correlation = rare_ef_cor
                                            , ymean = ef_mean
                                            , ysd = fvar)})
@@ -87,7 +87,7 @@ BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
       map_dfr(b_vec, function(b){
         # rescale function based on power function of S, after Thompson et al. Proc B 2018
         ef_scaling = S^b
-        ef = ef*ef_scaling
+        ef = ef_base*ef_scaling
         # summarize ef
         species_ef = ab*ef
         per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
