@@ -4,6 +4,8 @@ site          = "YA"                               # c("PA", "BC", "YA")
 area.interval = 100                                # c(20, 25, 33, 50, 100)
 q.seq         = seq(from= -5.0, to= 5.0, by=0.20)  # range of q (Hill numbers)
 
+# to get the figures to work,
+# you need to run all the listed sites and area.intervals separately (up to line 149)
 # how does area interval work? e.g. area interval 20 gives a 5x5 grid (100/20 = 5)
 #####
 
