@@ -197,7 +197,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("EF~d, Panama") +
+  scale_y_continuous("EF~d, Yasuni") +
   mytheme
 
 ggplot()+
@@ -210,7 +210,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("PCF~d, Panama") +
+  scale_y_continuous("PCF~d, Yasuni") +
   mytheme
 
 # what does the most predictive relationship look like
@@ -237,7 +237,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("EF~d, Panama") +
+  scale_y_continuous("EF~d, BCI Road") +
   mytheme
 
 ggplot()+
@@ -250,7 +250,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("PCF~d, Panama") +
+  scale_y_continuous("PCF~d, BCI Road") +
   mytheme
 
 # what does the most predictive relationship look like
@@ -277,7 +277,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("EF~d, Panama") +
+  scale_y_continuous("EF~d, Pasoh") +
   mytheme
 
 ggplot()+
@@ -290,7 +290,7 @@ ggplot()+
   geom_hline(aes(yintercept=0)) +
   
   scale_x_continuous("q") +
-  scale_y_continuous("PCF~d, Panama") +
+  scale_y_continuous("PCF~d, Pasoh") +
   mytheme
 
 # what does the most predictive relationship look like
