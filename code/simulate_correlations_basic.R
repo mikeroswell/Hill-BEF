@@ -36,12 +36,16 @@ cor_rm<-function(x, y){
 
 
 n_sp <- 350 # number of possible species
-n_comm <- 20 # number of communities
+n_comm <- 30 # number of communities
 ab_mean <- 35 # mean species abundance per community
 ab_sd <- 2 # sd of mean species abundance across communities
 ab_disp <- 0.2 # dispersion of negative binomial
-cor_vec<-seq(-0.8,0.8,0.1) # correlation between species abundance and per-capita ecosystem function
-b_vec<- c(-0.25, 0.00, 0.50, 1.00, 1.50, 2.00)
+cor_vec<-seq(-0.8,0.8,0.25) # correlation between species rarity and per-capita ecosystem function
+b_vec <- c(-0.25, 0.00, 0.50, 1.00, 1.50, 2.00) # general complementarity effect: 
+# scales all per-capita EF based on richness per se
+occ_vec <- seq(-0.5, 0.5, 0.2) # slope of occurrence-per-capita EF relationship
+occ_sd <- seq(0, 1, 0.25) # sd of occurrence relationship
+
 ef_mean<-75 # constant, mean per-capita function
 ef_sd<- c(5, 10, 20, 40) # conditional SD of per-capita function
 ell_vec<-seq(-3,3,0.25)
@@ -54,7 +58,7 @@ ell_vec<-seq(-3,3,0.25)
 # cor_rm(Ln(x), Ln(y))
 
 
-reps<-99
+reps<-28
 
 # testing values for simulation
 # iter<-1
@@ -87,33 +91,42 @@ BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
       map_dfr(b_vec, function(b){
         # rescale function based on power function of S, after Thompson et al. Proc B 2018
         ef_scaling = S^b
-        ef = ef_base*ef_scaling
+        ef_with_rich = ef_base*ef_scaling
         # summarize ef
-        species_ef = ab*ef
-        per_capita_ef = apply(species_ef, 2, sum)/ apply(ab, 2, sum)
-        total_ef = apply(species_ef, 2, sum)
-        map_dfr(ell_vec, function(ell){
-          D = apply(ab, 2, function(x){rarity(x, l = ell)})
-          per_capita_BEF = cor_rm(sapply(D, Ln), sapply(per_capita_ef, Ln))^2
-          per_community_BEF = cor_rm(sapply(D, Ln), sapply(total_ef, Ln))^2
-          return(data.frame(rare_ef_cor
-                            , b 
-                            , ell
-                            , ef_sd, fvar
-                            , v_rich = var(apply(ab, 2, function(x){sum(x>0)}))
-                            , per_capita_BEF
-                            , per_community_BEF))
-       
+        species_ef = ab*ef_with_rich
+        map_dfr(occ_vec, function(occ_link){
+          map_dfr(occ_sd, function(occ_var){
+            sensitivity_weighting <- apply(ab, 1, function(x){sum(x>0)}) 
+            ef = species_ef * rnorm(n_sp, mean = sensitivity_weighting ^ occ_link, sd = occ_var)
+            per_capita_ef = apply(ef, 2, sum)/ apply(ab, 2, sum)
+            total_ef = apply(ef, 2, sum)
+            map_dfr(ell_vec, function(ell){
+              D = apply(ab, 2, function(x){rarity(x, l = ell)})
+              per_capita_BEF = cor_rm(sapply(D, Ln), sapply(per_capita_ef, Ln))^2
+              per_community_BEF = cor_rm(sapply(D, Ln), sapply(total_ef, Ln))^2
+              return(data.frame(rare_ef_cor
+                                , b 
+                                , ell
+                                , ef_sd
+                                , fvar
+                                , sensitivity = occ_link
+                                , sensitivity_sd = occ_var
+                                , v_rich = var(apply(ab, 2, function(x){sum(x>0)}))
+                                , per_capita_BEF
+                                , per_community_BEF))
+           
+            })
           })
         })
+      })
     })
   })
 })
-toc() # 5.5 minutes on MR macbook pro
+toc() # 
 # check variation in richness as driver
 
 BEF_summary<-BEF_sim_simple %>% 
-  group_by(rare_ef_cor, ell, fvar, b) %>% 
+  group_by(rare_ef_cor, ell, fvar, b, sensitivity, sensitivity_sd) %>% 
   summarize_all(.funs = "mean")
 
  
@@ -128,7 +141,7 @@ BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  facet_grid(fvar~b) + 
+  facet_grid(fvar ~ b + sensitivity + sensitivity_sd) + 
   labs(x = "cor(rarity, per-capita ef)"
          , y = "Hill scaling exponent ell"
          , fill = "BEF (per-capita) r2 \nin log-log space")
@@ -139,7 +152,7 @@ BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  facet_grid(fvar~b) + 
+  facet_grid(fvar ~ b + sensitivity + sensitivity_sd) + 
   labs(x = "cor(rarity, per-capita ef)"
        , y = "Hill scaling exponent ell"
        , fill = "BEF (per-community) r2 \nin log-log space")
