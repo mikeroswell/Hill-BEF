@@ -141,7 +141,7 @@ BEF_summary<-BEF_sim_simple %>%
 pdf("figures/basic_simulation_heatmaps_variance_and_b.pdf")
 # make heatmap for per-capita function
 map(occ_vec, function(sensitivity){
-BEF_summary %>% filter(
+a<-BEF_summary %>% filter(
   sensitivity == sensitivity) %>% 
       ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
   geom_tile() +
@@ -154,17 +154,18 @@ BEF_summary %>% filter(
 
 # make heatmap for total function
 
-BEF_summary %>% filter(
+b<-BEF_summary %>% filter(
   sensitivity == sensitivity) %>% 
   ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
   facet_grid(fvar ~ b ) + 
-  labs(x = "cor(rarity, per-capita ef)"
        , y = "Hill scaling exponent ell"
        , fill = "BEF (per-community) r2 \nin log-log space")
 
+print(a)
+print(b)
 })
 
 dev.off()
