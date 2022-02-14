@@ -60,7 +60,11 @@ Hill-BEF
 |     | YA_biomass.csv # forest data Yasuni, Ecuador
 |
 ----- figures
-      | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
+|      | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
+|
+----- Rmds
+|     | Hill_Postulae.Rmd # some general properties of Hill numbers
+
 ```
 
 
