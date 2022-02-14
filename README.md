@@ -48,6 +48,8 @@ Hill-BEF
 ----- code
 |     | BEF_Hill_mg.R  # main analysis file
 |     | simulate_correlations_basic.R # explore parameter space for underlying, abstract, non-biological relationships
+|     | BEF_Hill_Forests_Feb22.R # explores diversity-ef relationships across ell-gradient and spatial scale for tropical forest datasets
+|     | BEF_HIll_Forests2_Feb22.R # looks v similar to file without 2 in name. 
 | 
 ----- data
 |     | a.list.rds # for now data in .rds file

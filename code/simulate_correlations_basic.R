@@ -44,7 +44,7 @@ cor_vec<-seq(-0.8,0.8,0.25) # correlation between species rarity and per-capita 
 b_vec <- c(-0.25, 0.00, 0.50, 1.00, 1.50, 2.00) # general complementarity effect: 
 # scales all per-capita EF based on richness per se
 occ_vec <- seq(-0.5, 0.5, 0.2) # slope of occurrence-per-capita EF relationship
-occ_sd <- seq(0, 1, 0.25) # sd of occurrence relationship
+occ_sd <- 0  # seq(0, 1, 0.25) # sd of occurrence relationship
 
 ef_mean<-75 # constant, mean per-capita function
 ef_sd<- c(5, 10, 20, 40) # conditional SD of per-capita function
@@ -58,7 +58,7 @@ ell_vec<-seq(-3,3,0.25)
 # cor_rm(Ln(x), Ln(y))
 
 
-reps<-28
+reps<-99
 
 # testing values for simulation
 # iter<-1
@@ -97,7 +97,7 @@ BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
         map_dfr(occ_vec, function(occ_link){
           map_dfr(occ_sd, function(occ_var){
             sensitivity_weighting <- apply(ab, 1, function(x){sum(x>0)}) 
-            ef = species_ef * rnorm(n_sp, mean = sensitivity_weighting ^ occ_link, sd = occ_var)
+            ef = species_ef * sensitivity_weighting ^ rnorm(n_sp, mean =  occ_link, sd = occ_var)
             per_capita_ef = apply(ef, 2, sum)/ apply(ab, 2, sum)
             total_ef = apply(ef, 2, sum)
             map_dfr(ell_vec, function(ell){
@@ -125,6 +125,9 @@ BEF_sim_simple<-future_map_dfr(1:reps, function(iter){
 toc() # 
 # check variation in richness as driver
 
+# save to file since simulation takes a while.
+write.csv(BEF_sim_simple, file ="data/hill_sim_2.csv", row.names =F)
+
 BEF_summary<-BEF_sim_simple %>% 
   group_by(rare_ef_cor, ell, fvar, b, sensitivity, sensitivity_sd) %>% 
   summarize_all(.funs = "mean")
@@ -137,25 +140,34 @@ BEF_summary<-BEF_sim_simple %>%
 
 pdf("figures/basic_simulation_heatmaps_variance_and_b.pdf")
 # make heatmap for per-capita function
-BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
+map(occ_vec, function(sensitivity){
+BEF_summary %>% filter(
+  sensitivity == sensitivity
+  , sensitivity_sd == sensitivity_sd) %>% 
+      ggplot(aes(rare_ef_cor, ell, fill = per_capita_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  facet_grid(fvar ~ b + sensitivity + sensitivity_sd) + 
+  facet_grid(fvar ~ b) + 
   labs(x = "cor(rarity, per-capita ef)"
          , y = "Hill scaling exponent ell"
          , fill = "BEF (per-capita) r2 \nin log-log space")
 
 # make heatmap for total function
 
-BEF_summary %>% ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
+BEF_summary %>% filter(
+  sensitivity == sensitivity
+  , sensitivity_sd == sensitivity_sd) %>% 
+  ggplot(aes(rare_ef_cor, ell, fill = per_community_BEF))+
   geom_tile() +
   theme_classic() +
   scale_fill_viridis_c() +
-  facet_grid(fvar ~ b + sensitivity + sensitivity_sd) + 
+  facet_grid(fvar ~ b ) + 
   labs(x = "cor(rarity, per-capita ef)"
        , y = "Hill scaling exponent ell"
        , fill = "BEF (per-community) r2 \nin log-log space")
+
+})
 
 dev.off()
 
