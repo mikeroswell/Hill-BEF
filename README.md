@@ -52,6 +52,10 @@ Hill-BEF
 ----- data
 |     | a.list.rds # for now data in .rds file
 |     | z.list.rds # for now data in .rds file
+|     | BC_biomass.csv # tropical forest data from Barro Colorado Island
+|     | PA_biomass.csv # forest data Pasoh, Malaysia
+|     | VB_biomass.csv # forest data Volcán Brava, Costa Rica
+|     | YA_biomass.csv # forest data Yasuni, Ecuador
 |
 ----- figures
       | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
