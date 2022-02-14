@@ -161,6 +161,7 @@ b<-BEF_summary %>% filter(
   theme_classic() +
   scale_fill_viridis_c() +
   facet_grid(fvar ~ b ) + 
+  labs(x = "cor(rarity, per-capita ef)"
        , y = "Hill scaling exponent ell"
        , fill = "BEF (per-community) r2 \nin log-log space")
 
