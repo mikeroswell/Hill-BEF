@@ -1,9 +1,15 @@
-library(gratia); library(ggplot2)
+# analysis file for Hill-BEF relationships with forests and bees
+# Mark Genung, Michael Roswell
+
+library(gratia) 
+library(tidyverse)
+library(MeanRarity)
+library(mgcv)
 
 # choose site and q values method
 #####
 site              = "YA"                               # c("PA", "BC", "YA")
-q.seq             = seq(from= -5.0, to= 5.0, by=0.20)  # range of q (Hill numbers)
+ell.seq             = seq(from= -5.0, to= 5.0, by=0.20)  # range of q (Hill numbers)
 area.interval.vec = c(25,33,50,100)                 # don't change
 # how does area interval work? e.g. area interval 20 gives a 5x5 grid (100/20 = 5)
 #####
@@ -11,17 +17,17 @@ area.interval.vec = c(25,33,50,100)                 # don't change
 # big loop, each time subdivides the plots to different sizes
 
 # create output matrices and lists
-ef.cor.out  = matrix(NA, length(area.interval.vec), length(q.seq))
-pcf.cor.out = matrix(NA, length(area.interval.vec), length(q.seq))
+ef.cor.out  = matrix(NA, length(area.interval.vec), length(ell.seq))
+pcf.cor.out = matrix(NA, length(area.interval.vec), length(ell.seq))
 div.out     = vector("list", length(area.interval.vec))
 c.ef.out    = vector("list", length(area.interval.vec))
 c.pcf.out   = vector("list", length(area.interval.vec))
 
-for(q in 1:length(area.interval.vec)){
+for(are.int in 1:length(area.interval.vec)){
   
   # data reading and processing at the beginning of the big loop
   # probably would be more efficient outside
-  start = read.csv(paste("/Users/Mark/Desktop/OldDesktop/GlobalDom_final/", site, "_biomass.csv",
+  start = read.csv(paste("data/", site, "_biomass.csv",
                          sep=""))
   
   if(site=="PA"){start = start[which(start$Year==2012),]}
@@ -31,7 +37,7 @@ for(q in 1:length(area.interval.vec)){
   colnames(start)[which(colnames(start)=="X1ha.Plot.X.Coordinate")] = "x"
   colnames(start)[which(colnames(start)=="X1ha.Plot.Y.Coordinate")] = "y"
   
-  area.interval = area.interval.vec[q]
+  area.interval = area.interval.vec[are.int]
   
   # set up for area subdivision loop
   #####
@@ -94,47 +100,54 @@ for(q in 1:length(area.interval.vec)){
   # get the ef~div correlation
   #####
 
-  div = matrix(NA, length(q.seq), nsites)
-  for(z in 1:length(q.seq)){
+  div = matrix(NA, length(ell.seq), nsites)
+  # for(z in 1:length(ell.seq)){
+  #   
+  #   q.loop = ell.seq[z]
+  #   
+  #   # get hill diversity
+  #   if(ell.loop != 1){
+  #     for(j in 1:nrow(s.ab)){
+  #       q.hold = s.ab[j,]
+  #       q.hold = q.hold[-which(q.hold==0)]
+  #       div[z,j] = sum((q.hold/sum(q.hold))^ell.seq[z])^(1/(1-ell.seq[z]))
+  #     }
+  #   }
+  #   
     
-    q.loop = q.seq[z]
+  map(1:length(ell.seq), function(ell){
+    map(1:nrow(s.ab), function(x){
+      div[ell, x] <<- rarity(s.ab[x, ], ell.seq[ell])
+          })
     
-    # get hill diversity
-    if(q.loop != 1){
-      for(j in 1:nrow(s.ab)){
-        q.hold = s.ab[j,]
-        q.hold = q.hold[-which(q.hold==0)]
-        div[z,j] = sum((q.hold/sum(q.hold))^q.seq[z])^(1/(1-q.seq[z]))
-      }
-    }
-    
-    if(q.loop == 1){
-      for(j in 1:nrow(s.ab)){
-        q.hold = s.ab[j,]
-        q.hold = q.hold[-which(q.hold==0)]
-        div[z,j] = 2.71828^(-sum((q.hold/sum(q.hold))*log(q.hold/sum(q.hold))))
-      }
-    }
+    # if(ell.loop == 1){
+    #   for(j in 1:nrow(s.ab)){
+    #     q.hold = s.ab[j,]
+    #     q.hold = q.hold[-which(q.hold==0)]
+    #     div[z,j] = 2.71828^(-sum((q.hold/sum(q.hold))*log(q.hold/sum(q.hold))))
+    #   }
+    # }
     
     # models for diversity and function
     # the gam version takes longer
-    ef.cor.out[q,z]  = summary(gam(c.ef  ~ s(div[z,], k=3)))$r.sq
-    pcf.cor.out[q,z] = summary(gam(c.pcf ~ s(div[z,], k=3)))$r.sq
+    ef.cor.out[are.int, ell]  <<- summary(gam(c.ef  ~ s(div[ell, ], k=3)))$r.sq
+    pcf.cor.out[are.int, ell] <<- summary(gam(c.pcf ~ s(div[ell,], k=3)))$r.sq
     #ef.cor.out[q,z]  = cor(c.ef , div[z,], method="spearman")
     #pcf.cor.out[q,z] = cor(c.pcf, div[z,], method="spearman")
     
     # track progress
-    print(paste("different q values",z,"of",length(q.seq)))
-  }
+    print(paste("different ell values", ell,"of",length(ell.seq)))
+
   
   # save the diversity matrices, we will need one of them later
-  div.out[[q]] = div
+  div.out[[ell]] <<- div
   
   # save community-level EF, we will need it later
-  c.ef.out[[q]]  = c.ef
-  c.pcf.out[[q]] = c.pcf
+  c.ef.out[[ell]]  <<- c.ef
+  c.pcf.out[[ell]] <<- c.pcf
   
-  print(paste("different areas",q,"of",length(area.interval.vec)))
+  print(paste("different areas", are.int, "of",length(area.interval.vec)))
+  })
 }
 
 # if you want to require that ef.cor.out and pcf.cor.out are not < 0
@@ -189,10 +202,10 @@ YApcf = readRDS("YApcf.cor.GAM.k3.rds"); YA25pcf = pmax(0, YA25pcf)
 
 ggplot()+
   
-  geom_point(aes(x=q.seq,y=YAef[1,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[1]) +
-  geom_point(aes(x=q.seq,y=YAef[2,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[2]) +
-  geom_point(aes(x=q.seq,y=YAef[3,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[3]) +
-  geom_point(aes(x=q.seq,y=YAef[4,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[4]) +
+  geom_point(aes(x=ell.seq,y=YAef[1,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[1]) +
+  geom_point(aes(x=ell.seq,y=YAef[2,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[2]) +
+  geom_point(aes(x=ell.seq,y=YAef[3,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[3]) +
+  geom_point(aes(x=ell.seq,y=YAef[4,]), size=4, stroke=0.3, pch=21, alpha=0.5, fill=scol[4]) +
   
   geom_hline(aes(yintercept=0)) +
   
@@ -202,10 +215,10 @@ ggplot()+
 
 ggplot()+
   
-  geom_point(aes(x=q.seq, y=YApcf[1,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[1]) +
-  geom_point(aes(x=q.seq, y=YApcf[2,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[2]) +
-  geom_point(aes(x=q.seq, y=YApcf[3,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[3]) +
-  geom_point(aes(x=q.seq, y=YApcf[4,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[4]) +
+  geom_point(aes(x=ell.seq, y=YApcf[1,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[1]) +
+  geom_point(aes(x=ell.seq, y=YApcf[2,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[2]) +
+  geom_point(aes(x=ell.seq, y=YApcf[3,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[3]) +
+  geom_point(aes(x=ell.seq, y=YApcf[4,]), size=4,stroke=0.3,pch=21, alpha=0.5, fill=scol[4]) +
   
   geom_hline(aes(yintercept=0)) +
   
