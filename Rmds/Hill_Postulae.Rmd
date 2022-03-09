@@ -2,7 +2,9 @@
 title: "Hill_postulae"
 author: "Michael Roswell, Mark Genung, Tina Harrison"
 date: "2/14/2022"
-output: html_document
+output: 
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -11,9 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Overview
 Some of what makes one $\ell$ value more predictive of function than another is
-about biology, other parts are about math. I think we can make some good 
-progess on the math front. I'm starting to compile some things that seem true
-about Hill numbers that might lead us to some realizations. 
+about biology, other parts are about math. This is a live document to record
+some quantitative relationships (both formal and informal) about Hill diversity
+that may lead to clearer interpretations of empirical findings.
 
 ## Hill number definition
 
@@ -42,29 +44,34 @@ much smaller, when $\ell = 1$ this range is at its minimum, $D=S$, for any $N$,
 distribution of relative abundance.
 
 For $\ell \geq 1$, the minimum value $D$ can take is $S$ (maximum evenness). As
-$\ell -> \infty$, the maximum value of $D$ grows to the maximum species rarity,
-i.e. $N$ (maximum dominance).
+$\ell \rightarrow \infty$, the maximum value of $D$ grows to the maximum species
+rarity, i.e. $N$. When $1 \leq \ell < \infty$, $D$ reaches its maximum with
+maximum dominance, but as $\ell \rightarrow \infty$ the maximum rarity drives
+$D$ regardless of the shape of the species abundance distribution.
 
 For $\ell <1$, the *maximum* value $D$ can take is $S$ (maximum evenness). As
-$\ell -> -\infty$, the minimum value of $D$ shrinks to the minimum species rarity,
-i.e. something nearing $1$ when $N>> S$ (maximum dominance).
+$\ell \rightarrow -\infty$, the minimum value of $D$ shrinks to the minimum
+species rarity, i.e. something nearing $1$ when $N >> S$ (maximum dominance).
 
 ## D-flipping
 
 For a given $S$, $N$, the spearman rank correlation between the Hill diversity
-of a set of assemblages when $\ell = \infty$ and when $\ell = -\infty$ is $-1$. More 
-simply, the even assemblage has maximum diversity for $\ell<1$ and minimum 
-diversity when $\ell>1$. 
+of a set of assemblages when $\ell = \infty$ and when $\ell = -\infty$ is $-1$.
+More simply, the even assemblage has maximum diversity for $\ell<1$ and minimum
+diversity when $\ell>1$.
 
 ## interpretations
 
-When $\ell -> \infty$, $D$ conveys information primarily about *abundance*
+When $\ell \rightarrow \infty$, $D$ conveys information primarily about
+*abundance*
 
-When $\ell -> -\infty$, $D$ conveys information primarily about *dominance* (but
-not really evenness, which is complicated)
+When $\ell \rightarrow -\infty$, $D$ conveys information primarily about
+*dominance* (but not really evenness, which is complicated)
 
 When the predictive ability of $D$ is maximized when $\ell \neq (-\infty, 1,
 \infty)$ it is hard to say what aspects of the SAD are most salient.
+
+
 
 
 

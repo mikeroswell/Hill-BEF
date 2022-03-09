@@ -5,7 +5,8 @@ library(gratia)
 library(tidyverse)
 library(MeanRarity)
 library(mgcv)
-
+# remotes::install_github("TimTeaFan/dplyover")
+# library(dplyr)
 # choose site and q values method
 #####
 site              = "YA"                               # c("PA", "BC", "YA")
@@ -66,18 +67,49 @@ for(are.int in 1:length(area.interval.vec)){
   
   start$site = paste(start$site, start$small.site)
   #####
+
+  ##########################
+  # above is all about formatting the data. It should be kept separate.
   
+  # Now, a more general function to compute metrics/ fit gams etc.
   
+  hill_ef<-function(dataset
+                    , site.col = "site"
+                    , tax.col = "Gen_sp"
+                    , fun.col = "carbon"
+                    , ell.vec = seq(-5, 5, 0.5)){
   # set up abundance and function matrices
   #####
+  # not sure we need these but here. 
+  nsites = dataset %>% summarize(n_distinct({{site.col}}))
+  nsp = dataset %>% summarize(n_distinct({{tax.col}}))
   
-  nsites = length(unique(start$site))
-  nsp = length(unique(start$Gen_sp))
+  # s.ab = matrix(0, nsites, nsp)
+  # s.fn = matrix(0, nsites, nsp)
+  site_d = dataset %>% 
+    group_by(!!rlang::sym(site.col), !!rlang::sym(tax.col)) %>% 
+    summarize(sp_ab = n()) %>% 
+    ungroup() %>% 
+    group_by({{site.col}}) %>% 
+    summarize(dplyover::over(.x = ell.vec
+                             , ~rarity(.data$sp_ab, l = .x)
+                             , .names - "div_l_{x}")) 
+      
+  site_sums = dataset %>% 
+    group_by({{site.col}}) %>% 
+    summarize(ab = n()
+              , ef = sum(!!rlang::sym(fun.col))
+              ) %>% 
+    mutate(pcf = ef/ab)
   
-  s.ab = matrix(0, nsites, nsp)
-  s.fn = matrix(0, nsites, nsp)
+  site_D = left_join(site_sums, site_d )
+  return(site_D)
+  }
+
   
-  for(i in 1:nsites){
+  map(ell.vec, function(ell)
+  map(unique(dataset[ , site.col])){
+    map_dfr()
     for(j in 1:nsp){
       s.ab[i,j] = sum(start$abun[which(start$site==unique(start$site)[i] &
                                          start$Gen_sp==unique(start$Gen_sp)[j])])
