@@ -1,6 +1,23 @@
 # Tina's partition code
 library(MeanRarity)
 library(tidyverse)
+
+
+# helper function: 
+## Transparent colors
+## Mark Gardener 2015
+## www.dataanalytics.org.uk
+t_col <- function(color, percent = 50, name = NULL) {
+  # # #
+  rgb.val <- col2rgb(color)
+  ## Make new color using input color as base and alpha set by transparency
+  t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3], max = 255,
+               alpha = (100 - percent) * 255 / 100, names = name)
+  ## Save the color
+  invisible(t.col) }
+## END
+
+
 # format the bee data
 a.list = readRDS("data/a.list.rds")
 z.list = readRDS("data/z.list.rds")
@@ -40,13 +57,15 @@ map(1:n_data, function(se){
          , zbar.predict = exp(coef(zmod)[1])*x^(coef(zmod)[2]) %>% as.numeric
          # derived
          , t.predict = (exp(coef(Amod)[1] + 
-                              coef(zmod)[1]) * x^(coef(Amod)[2] +
-                              coef(zmod)[2])) %>% 
+                              coef(zmod)[1]) # intercepts
+                        * x^(coef(Amod)[2] + coef(zmod)[2]) # slopes
+                        ) %>% 
            as.numeric
         
          # nulls
          , t.A.predict = (exp(coef(Amod)[1] + 
-                                coef(zmod)[1]) * x^(coef(Amod)[2] + 0)) %>% 
+                                coef(zmod)[1]) * 
+                            x^(coef(Amod)[2] + 0)) %>% 
            as.numeric
          , t.zmod.predict = (exp(coef(Amod)[1] + coef(zmod)[1]) * 
                                x^(0 + coef(zmod)[2])) %>% 
@@ -94,8 +113,9 @@ map(1:n_data, function(se){
     A.int = confint(Amod2, 2)
     z.int = confint(zmod2, 2)
     # tmod = lm(log(t) ~ log(x)) # double-checking
-    # coef(Amod)[2] + coef(zmod)[2]; coef(tmod)[2]
-    # cor(log(t), log(x)); (beta.A+beta.z)*sd(log(x))/sd(log(t)) 
+    # coef(Amod2)[2] + coef(zmod2)[2]; coef(tmod)[2]
+    # coef(Amod2)[1] + coef(zmod2)[1]; coef(tmod)[1]
+    print(all.equal(cor(log(t), log(x)), (beta.A+beta.z)*sd(log(x))/sd(log(t))))
     c(
       beta.t
       , beta.A
@@ -108,8 +128,12 @@ map(1:n_data, function(se){
       , z.upper = z.int[2]
       , t.cor = cor(log(t)
                     , log(x))
-      , A.cor = beta.A * sd(log(x))/sd(log(t))
-      , z.cor = beta.z * sd(log(x))/sd(log(t))
+      , A.cor = beta.A * sd(log(x))/(sd(
+        mean(log(colSums(z))) * log(A)
+        ))
+      , z.cor = beta.z * sd(log(x))/(sd(
+        mean(log(A)) * log(colSums(z))
+        ))
     )
     }) # close sapply; mp for "model predictions"
     # plot
@@ -139,16 +163,3 @@ map(1:n_data, function(se){
 
 })
 
-# helper function: 
-## Transparent colors
-## Mark Gardener 2015
-## www.dataanalytics.org.uk
-t_col <- function(color, percent = 50, name = NULL) {
-  # # #
-  rgb.val <- col2rgb(color)
-  ## Make new color using input color as base and alpha set by transparency
-  t.col <- rgb(rgb.val[1], rgb.val[2], rgb.val[3], max = 255,
-               alpha = (100 - percent) * 255 / 100, names = name)
-  ## Save the color
-  invisible(t.col) }
-## END
