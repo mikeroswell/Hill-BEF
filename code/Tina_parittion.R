@@ -17,19 +17,6 @@ t_col <- function(color, percent = 50, name = NULL) {
   invisible(t.col) }
 ## END
 
-
-# format the bee data
-a.list = readRDS("data/a.list.rds")
-z.list = readRDS("data/z.list.rds")
-a.data <- a.list %>% lapply(function(x) {rownames(x) = x$X; x[,-1] %>% 
-  as.data.frame.matrix %>% as.matrix}) 
-z.t.data <- z.list %>% lapply(function(x) {rownames(x) = x$X; x[,-1] %>% 
-  as.data.frame.matrix %>% as.matrix}) 
-z.data = sapply(1:length(z.t.data),
-                function(se) {z = z.t.data[[se]]/a.data[[se]]
-                z[is.nan(z)] = 0; z})
-
-
 # analysis workflow
 
 n_data <-3
