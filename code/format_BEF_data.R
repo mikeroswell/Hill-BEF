@@ -17,7 +17,12 @@ z.data = sapply(1:length(z.t.data),
 # Might go a bit flatter for the lefcheck data
 lefcheck<-read.csv("data/lefcheck.csv")
 
-lefcheck_by_site<-lefcheck %>% group_by(Province
+lefcheck_by_site<-lefcheck %>% 
+  group_by(Province) %>% 
+  mutate(Province_sites = n_distinct(SiteCode)) %>% 
+  filter(Province_sites >10) %>% 
+  select(-Province_sites) %>% 
+  group_by(Province
                       , Ecoregion
                       , Realm
                       , SiteCode
@@ -28,3 +33,17 @@ lefcheck_by_site<-lefcheck %>% group_by(Province
             , Abundance = sum(Abundance)
             , depths = n_distinct(Depth)
             , survs = n_distinct(SurveyID))
+# look at bci
+load("data/bci_tree8.rdata")
+head(bci.tree8)
+
+bci_sum <- bci.tree8 %>% group_by(sp) %>% 
+  summarize(Biomass = sum(agb)
+            , Abundance = n()
+            , quadrats =n_distinct(quadrat))
+
+
+# View(lefcheck %>% group_by(Province) %>% 
+#   summarize(abundance = sum(Abundance)
+#             , sites = n_distinct(SiteCode)
+#   ))
