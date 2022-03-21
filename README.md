@@ -7,10 +7,12 @@ which scaling exponent is best?
 # Contributing authors
 
 Michael Roswell1 mroswell@umd.edu
+Tina Harrison tinaharrison09@gmail.com
 Rachael Winfree2 rwinfree@rutgers.edu
 Mark A. Genung3 mark.genung@louisiana.edu
 
 1. Dept. of Entomology, University of Maryland, College Park, MD 20742, USA
+1. 
 1. Department of Ecology, Evolution & Natural Resources, Rutgers University, NJ
 08901, USA
 1. Dept of Biology, University of Louisiana, Lafayette, LA 70503, USA
@@ -50,6 +52,10 @@ Hill-BEF
 |     | simulate_correlations_basic.R # explore parameter space for underlying, abstract, non-biological relationships
 |     | BEF_Hill_Forests_Feb22.R # explores diversity-ef relationships across ell-gradient and spatial scale for tropical forest datasets
 |     | BEF_HIll_Forests2_Feb22.R # looks v similar to file without 2 in name. 
+|     | Download_BEF_data.R # pulls data from dryad, etc. (don't run)
+|     | format_BEF_data.R # format all datasets in similar way
+|     | towards_general_partition.R # run Tina's partitions on any data (now lefcheck)
+|     | Tina_paritition.R # minor changes from Tina's code
 | 
 ----- data
 |     | a.list.rds # for now data in .rds file
@@ -58,6 +64,7 @@ Hill-BEF
 |     | PA_biomass.csv # forest data Pasoh, Malaysia
 |     | VB_biomass.csv # forest data Volcán Brava, Costa Rica
 |     | YA_biomass.csv # forest data Yasuni, Ecuador
+|     | lecheck.csv # key data from Lefcheck figshare
 |
 ----- figures
 |      | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
