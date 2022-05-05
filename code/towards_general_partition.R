@@ -1,5 +1,6 @@
 # analyze data with Tina partition
 source("code/format_BEF_data.R")
+source()
 library(MeanRarity)
 library(furrr)
 # loop over ell
@@ -29,6 +30,8 @@ sum_by_ell <- function(dat
                      )})
 }
 
+res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
+
 res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
 
 
@@ -38,39 +41,46 @@ res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec)
 #   theme_classic()
 
 
-first_out <- map_dfr(unique(res$Province), function(Province){
-    future_map_dfr(ell_vec, function(ell){
-      dat = res %>% filter(Province == !!Province, ell == !!ell) 
-  # was struggling with the quoting stuff, the !! fixes
-      abMod = lm(Ln(dat$ab) ~ Ln(dat$D))
-      pcfMod = lm(Ln(dat$pcf) ~ Ln(dat$D))
-      ab.CI = confint(abMod, 2)
-      pcf.CI = confint(pcfMod, 2)
-      EF.CI = confint(lm(Ln(dat$EFt)~Ln(dat$D)), 2)
+fit_lms <- function(sub, dataset = "lefcheck"){
+  future_map_dfr(ell_vec, function(ell){
+    dat = sub %>% filter(ell == !!ell) 
+    # was struggling with the quoting stuff, the !! fixes
+    abMod = lm(Ln(dat$ab) ~ Ln(dat$D))
+    pcfMod = lm(Ln(dat$pcf) ~ Ln(dat$D))
+    ab.CI = confint(abMod, 2)
+    pcf.CI = confint(pcfMod, 2)
+    EF.CI = confint(lm(Ln(dat$EFt)~Ln(dat$D)), 2)
     
-      pcf.slope = coef(pcfMod)[[2]]
-      ab.slope = coef(abMod)[[2]]
-      EF.slope = pcf.slope + ab.slope
-      EF.cor = cor(Ln(dat$EFt)
-                  , Ln(dat$D))
-      ab.cor = ab.slope* sd(Ln(dat$D))/(sd(
-        mean(Ln(dat$pcf)) * Ln(dat$ab)
-      ))
-      pcf.cor = pcf.slope * sd(Ln(dat$D))/(sd(
-        mean(Ln(dat$ab)) * Ln(dat$pcf)
-      ))
-      return(data.frame(pcf.slope
-                        , ab.slope
-                        , EF.slope
-                        , EF.cor
-                        , ab.cor
-                        , pcf.cor
-                        , ell
-                        , Province
-                        , Latitude = dat$meanlat
-                        , dataset = "lefcheck"
-      ))
-    })
+    pcf.slope = coef(pcfMod)[[2]]
+    ab.slope = coef(abMod)[[2]]
+    EF.slope = pcf.slope + ab.slope
+    EF.cor = cor(Ln(dat$EFt)
+                 , Ln(dat$D))
+    ab.cor = ab.slope* sd(Ln(dat$D))/(sd(
+      mean(Ln(dat$pcf)) * Ln(dat$ab)
+    ))
+    pcf.cor = pcf.slope * sd(Ln(dat$D))/(sd(
+      mean(Ln(dat$ab)) * Ln(dat$pcf)
+    ))
+    return(data.frame(pcf.slope
+                      , ab.slope
+                      , EF.slope
+                      , EF.cor
+                      , ab.cor
+                      , pcf.cor
+                      , ell
+                      , Latitude = dat$meanlat
+                      , dataset = dataset
+    ))
+  })
+}
+
+
+sim_out <-fit_lms(res2, dataset = "sim1")
+
+first_out <- map_dfr(unique(res$Province), function(Province){
+  sub <- res %>% filter(Province == !!Province)
+  data.frame(fit_lms(sub = sub), Province = Province)
   })
 
 # for now save data so I can restart computer
@@ -96,6 +106,16 @@ map(unique(first_out$Province), function(province){
 })
 
 dev.off()
+
+sim_out %>% pivot_longer(cols = ends_with(".slope")
+                         , values_to = "slope"
+                         , names_to ="component") %>% 
+  ggplot(aes(ell, slope, color = component))+
+  geom_line()+
+  theme_classic()+
+  geom_hline(yintercept = 0, size = 0.2)  +
+  geom_vline(xintercept = 1, size = 0.2) +
+  scale_color_manual(values = c("red", "black", "blue")) 
 
 # slopes and correlation coefficients from all "Provinces" together
 pdf("figures/lefcheck_together.pdf")
