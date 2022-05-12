@@ -6,7 +6,7 @@ species_number <- 200
 abundance_mean <- 150
 abundance_dispersion <- 1.5
 function_slope <- -1.1
-function_error <- 5
+function_error <- .05
 
 
 

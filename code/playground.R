@@ -34,7 +34,7 @@ ui <- fluidPage(
             numericInput("abund_mu", label = "Abundance - mean:", 150, width='75%'),
             numericInput("abund_size", label = "Abundance - dispersion:", 1.5, width='75%'),
             numericInput("fun_beta", label = "Function - slope:", -1.1, width='75%'),
-            numericInput("fun_shape", label = "Function - error:", 5, width='75%')
+            numericInput("fun_shape", label = "Function - error:", 50, width='75%')
         ), # end sidebar panel
         
         mainPanel(fluidRow(
