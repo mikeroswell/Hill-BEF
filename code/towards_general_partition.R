@@ -1,6 +1,6 @@
 # analyze data with Tina partition
 source("code/format_BEF_data.R")
-source()
+
 library(MeanRarity)
 library(furrr)
 # loop over ell
@@ -30,7 +30,7 @@ sum_by_ell <- function(dat
                      )})
 }
 
-res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
+# res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
 
 res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
 
@@ -76,7 +76,7 @@ fit_lms <- function(sub, dataset = "lefcheck"){
 }
 
 
-sim_out <-fit_lms(res2, dataset = "sim1")
+# sim_out <-fit_lms(res2, dataset = "sim1")
 
 first_out <- map_dfr(unique(res$Province), function(Province){
   sub <- res %>% filter(Province == !!Province)
