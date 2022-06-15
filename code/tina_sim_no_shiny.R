@@ -21,10 +21,10 @@ sites <- 20
 species_number <- 200
 
 # variable ones
-# abundance_mean_v <- floor(10^seq(1,3, 0.3)) #150
-# abundance_dispersion_v <- seq(0.1, 3, 0.2) #1.5
-# function_slope_v <- seq(-2, 2, 0.2) # -1.1
-# function_error_v <- 10^seq(-1, 2, 0.2) #50
+abundance_mean_v <- floor(10^seq(1,3, 0.3)) #150
+abundance_dispersion_v <- seq(0.1, 3, 0.2) #1.5
+function_slope_v <- seq(-2, 2, 0.2) # -1.1
+function_error_v <- 10^seq(-1, 2, 0.2) #50
 
 
 # abundance_mean  <- 150
@@ -37,9 +37,9 @@ nc <- 7
 plan(strategy = multiprocess, workers = nc)
 future_map(abundance_mean_v, function(abundance_mean){
   map(abundance_dispersion_v, function(abundance_dispersion){
-    map(function_slope_v, function(function_slope){
-      map(function_error_v, function(function_error){
-        
+  map(function_slope_v, function(function_slope){
+  map(function_error_v, function(function_error){
+
    
 tic()
         
@@ -126,23 +126,28 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
                    , warning = function(w) w )
 
   
-  BEF_plot <- function(q, BEF){
-    plot(q
-         , BEF
-         , ylab = "f", col=rainbow(ncol(Dq)), pch=19, cex=2,
-         main = paste("abMu =", abundance_mean
-                      , "abDisp =", abundance_dispersion
-                      , "\nabEF_slope =", function_slope
-                      , "abEF_err =", function_error
-                      , "\nq-BEF raw cor")
-    )
-    abline(v=0, lty=2)
-  }
-  print(toc())
+  
+  print(toc)
+    
  if(all(is.na(BEF))){ 
-   return(hist( Dq, main = BEF))}else{
-     return(BEF_plot(q, BEF))
-     }
+   NULL}
+  else{ 
+    return(
+    ggplot(data = data.frame(ell =1-q, BEF, rb = as.factor(1:ncol(Dq)))
+           , aes(ell, BEF, color = rb) )+
+      geom_point()+
+      labs(y = "BEF", title = paste("abMu =", abundance_mean
+                                    , "abDisp =", abundance_dispersion
+                                    , "\nabEF_slope =", function_slope
+                                    , "abEF_err =", function_error
+                                    , "\nq-BEF raw cor")) +
+      scale_color_manual(values = rainbow(ncol(Dq))) +
+      geom_vline(xintercept = 0, linetype = 2 ) +
+      theme_classic()+ 
+      theme(legend.position="none")
+    )}
+
+    
   
   
 
@@ -152,3 +157,13 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
   })
 })
 dev.off()
+
+
+# pdf("figures/test_looping.pdf")
+# future_map(1:100, function(neplo){
+#   if(neplo>0){
+#     par(mar = c(5,4,4,5)+.1)
+#   print(BEF_plot(q, BEF))}
+# })
+# dev.off()
+
