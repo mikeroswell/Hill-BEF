@@ -29,16 +29,16 @@ function_error_v <- 10^seq(-1, 2, 0.2) #50
 
 # abundance_mean  <- 150
 # abundance_dispersion <- 1.5
-# function_slope <- -1.1
-# function_error <- 50
+function_slope <- -1.1
+function_error <- 50
 
 pdf("figures/try_param_combos_for_peak.pdf")
 nc <- 7
 plan(strategy = multiprocess, workers = nc)
 future_map(abundance_mean_v, function(abundance_mean){
   map(abundance_dispersion_v, function(abundance_dispersion){
-  map(function_slope_v, function(function_slope){
-  map(function_error_v, function(function_error){
+    map(function_slope_v, function(function_slope){
+      map(function_error_v, function(function_error){
 
    
 tic()
@@ -129,12 +129,18 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
   
   print(toc)
     
- if(all(is.na(BEF))){ 
-   NULL}
+ if(all(is.na(BEF))| !is.data.frame(tryCatch(data.frame(ell =1-q, BEF, rb = as.character(1:ncol(Dq))), error = function(e){e}))){ 
+   ggplot() +
+     labs(title = paste("no go! \nabMu =", abundance_mean
+                                   , "abDisp =", abundance_dispersion
+                                   , "\nabEF_slope =", function_slope
+                                   , "abEF_err =", function_error
+                                   , "\nq-BEF raw cor")) +
+     theme_classic()}
   else{ 
     return(
-    ggplot(data = data.frame(ell =1-q, BEF, rb = as.factor(1:ncol(Dq)))
-           , aes(ell, BEF, color = rb) )+
+    ggplot(data =data.frame(ell =1-q, BEF, rb = as.character(1:ncol(Dq)))
+           , aes(ell, BEF, color = rb))+
       geom_point()+
       labs(y = "BEF", title = paste("abMu =", abundance_mean
                                     , "abDisp =", abundance_dispersion
@@ -142,7 +148,7 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
                                     , "abEF_err =", function_error
                                     , "\nq-BEF raw cor")) +
       scale_color_manual(values = rainbow(ncol(Dq))) +
-      geom_vline(xintercept = 0, linetype = 2 ) +
+      geom_vline(xintercept = 1, linetype = 2 ) +
       theme_classic()+ 
       theme(legend.position="none")
     )}
