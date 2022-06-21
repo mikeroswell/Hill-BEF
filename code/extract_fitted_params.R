@@ -14,22 +14,51 @@ source("code/format_BEF_data.R")
 # 
 # glm(family ="gamma")
 
+library(ggplot2)
 # function to fit neg binomial to abundances of species at the per-site level
 
 nbpar <- function(ab){
   MASS::fitdistr(ab, densfun = "Negative Binomial"
                , lower=c(1e-9, 1e-9))}
 
+trunc<-function(x){x[x>0]}
+
 # simulate an abundance vector
 set.seed(100)
-site_abundance<-rnbinom(667, size = 0.4, mu = 30)
+
+trials<-667
+size = 0.4
+mu = 30
+
+site_abundance <-rnbinom(n = trials, size = size, mu = mu)
+
+
 
 # fit the distribution and get simulation parameters back out
 nbpar(site_abundance) # returns something very close to simulated parameters
 
 # fit again with zeros omitted
-nbpar(site_abundance[site_abundance>0]) # Oh Snap, gives nonsense!
+x<-nbpar(site_abundance[site_abundance>0]) # different parameters
 
+drift <- data.frame()
+for(driftSteps in c(1:40)){
+  mypar <- nbpar(trunc(site_abundance))
+  size <- mypar$estimate[[1]]
+  mu <- mypar$estimate[[2]]
+  site_abundance <- rnbinom(n = trials, size = size, mu = mu) 
+  drift[driftSteps,"driftSteps"]<- driftSteps
+  drift[driftSteps,"size"]<- size
+  drift[driftSteps,"mu"]<- mu
+  
+}
+
+
+
+drift %>% ggplot(aes(driftSteps, mu)) +
+  geom_point() +
+  theme_classic()
+
+nbpar(trunc(rnbinom(667, size = 0.29, mu = 365)))
 # function to fit gamma distributions to the nb parameters. Right now using a
 # very klugey appraoch to making this a one-parameter problem, there is
 # certainly a better one (uniroot?)
