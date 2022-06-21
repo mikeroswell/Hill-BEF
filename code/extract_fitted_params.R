@@ -8,11 +8,34 @@ library(MeanRarity)
 source("code/format_BEF_data.R")
 
 # learn how to pull out neg. binomial params from a distribution
-?fitdistr
-afit<-fitdistr(sample_infinite(fit_SAD()[[3]], 100)
-               , densfun = "negative binomial")
+# ?fitdistr
+# afit<-fitdistr(sample_infinite(fit_SAD()[[3]], 100)
+#                , densfun = "negative binomial")
+# 
+# glm(family ="gamma")
 
-glm(family ="gamma")
+# function to fit neg binomial to abundances of species at the per-site level
+
+nbpar <- function(ab){
+  MASS::fitdistr(ab, densfun = "Negative Binomial"
+               , lower=c(1e-9, 1e-9))}
+
+# simulate an abundance vector
+set.seed(100)
+site_abundance<-rnbinom(667, size = 0.4, mu = 30)
+
+# fit the distribution and get simulation parameters back out
+nbpar(site_abundance) # returns something very close to simulated parameters
+
+# fit again with zeros omitted
+nbpar(site_abundance[site_abundance>0]) # Oh Snap, gives nonsense!
+
+# function to fit gamma distributions to the nb parameters. Right now using a
+# very klugey appraoch to making this a one-parameter problem, there is
+# certainly a better one (uniroot?)
+gpar <- function(nbparam){
+  MASS::fitdistr(nbparam, densfun = "gamma"
+                 , lower=c(1e-5, 0.999999999), upper = c(1e14, 1.0000000001) )}
 
 # at least for now, this function only takes a df as its argument. 
 # this means that columns have to be named according to the lefcheck data
@@ -32,8 +55,20 @@ par_getter <- function(dat){
                                                    , EF_slope = NA))
   }
   
-  nbpar <- MASS::fitdistr(dat$Abundance, densfun = "Negative Binomial"
-                          , lower=c(1e-5, 1e-5))
+
+  
+  getNB<-map_dfr(unique(dat$SiteCode), function(site){
+    print(site)
+   nb <- dat %>% filter(SiteCode == site ) %>% pull(Abundance) %>% nbpar()
+   return(data.frame(SiteCode = site
+    , NBsize_est = nb$estimate[1]
+     , NBsize_sd = nb$sd[1]
+     , NBmu_est = nb$estimate[2]
+     , NBmu_sd = nb$sd[2]))
+   })
+   getMeanGamma <- gpar(getNB$NBmu_est)$estimate[[1]]
+   getSizeGamma <- gpar(getNB$NBsize_est)$estimate[[1]]
+  
   lmDat<-dat %>% group_by(SiteCode) %>% summarize(Ab = sum(Abundance), EF = sum(Biomass))
   glmPar <- glm(lmDat$EF ~ log(lmDat$Ab), family = Gamma(link = "log")) 
   glmSum <- summary(glmPar)
@@ -41,25 +76,26 @@ par_getter <- function(dat){
                     , meanSiteAb = sum(dat$Abundance)/length(dat$Abundance)
                     , gammaRichObs = length(unique(dat$SPECIES_NAME))
                     , n_sites = length(unique(dat$SiteCode))
-                    , size_est = nbpar$estimate[1]
-                    , size_sd = nbpar$sd[1]
-                    , mu_est = nbpar$estimate[2]
-                    , mu_sd = nbpar$sd[2]
+                    , gammaShape_mu = getMeanGamma
+                    , gammaShape_size = getSizeGamma
                     , EF_disp = glmSum$dispersion
                     , EF_slope = glmSum$coefficients[[2]]))
-  }
+}
 
 lefchecked <-  lefcheck %>% 
   group_by(Province) %>% 
   filter(n()>10) 
-province_params <- map_dfr(unique(lefchecked$Province), function(prov){
-  dat <- lefchecked %>% 
-    filter(Province == prov & Biomass>0) %>% 
-   
-    ungroup() %>% 
-    drop_na()
-  print(length(dat$Abundance))
-  par_getter(dat)
+
+nc<- 7
+plan(strategy = multiprocess, workers = nc)
+province_params <- future_map_dfr(unique(lefchecked$Province), function(prov){
+    dat <- lefchecked %>% 
+      filter(Province == prov & Biomass>0 & !is.na(Abundance)) %>% 
+     
+      ungroup() %>% 
+      drop_na()
+    print(length(dat$Abundance))
+    par_getter(dat)
 })
  
 
