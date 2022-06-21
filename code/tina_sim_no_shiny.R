@@ -53,16 +53,16 @@ function_error_v <- 10^seq(-1, 2, 0.5) #50
 # function_slope <- -1.1
 # function_error <- 50
 
-# abundance_mean <- 10
-# abundance_dispersion <- 2.9
-# function_slope <- -0.8
-# function_error <- 6.31
+abundance_mean <- 10
+abundance_dispersion <- 0.4
+function_slope <- -0.5
+function_error <- 0.31
 
 tic()
 pdf("figures/try_param_combos_for_peak.pdf")
 nc <- 7
 plan(strategy = multiprocess, workers = nc)
-bad_combos <- future_map_dfr(abundance_mean_v, function(abundance_mean){
+future_map(abundance_mean_v, function(abundance_mean){
   map(abundance_dispersion_v, function(abundance_dispersion){
   map(function_slope_v, function(function_slope){
   map(function_error_v, function(function_error){
@@ -107,7 +107,7 @@ z <- sapply(1:as.numeric(sites), function(i) {
 # hist(rich)
 # plot(amu, avar)
 
-q <- seq(-2, 4, by = 0.2)
+q <- seq(-3, 5, by = 0.2)
 # derived function and diversity
 f <- colSums(a*z)
 Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
@@ -156,22 +156,22 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
   
 
   befDat<-tryCatch(data.frame(ell =1-q, BEF, rb = as.factor(1:ncol(Dq))), error = function(e){e})  
-  if(all(is.na(BEF)) |!is.data.frame(befDat) | abs(range(BEF)[[2]]-range(BEF)[[1]])<0.4){ 
+  if(all(is.na(BEF)) |!is.data.frame(befDat)){
+    print(data.frame(abMu = abundance_mean
+                     , abDisp = abundance_dispersion
+                     , abEF_slope = function_slope
+                     , abEF_err = function_error))
+    return(NULL)}
+  if(abs(range(BEF)[[2]]-range(BEF)[[1]])<0.4 & 
+    ( !(13<which.max(BEF) & which.max(BEF)<26) | !(13<which.min(BEF) & which.min(BEF)<26))){ 
     
-    data.frame(abMu = abundance_mean
+    print(data.frame(abMu = abundance_mean
                 , abDisp = abundance_dispersion
                 , abEF_slope = function_slope
-                , abEF_err = function_error)
-   # ggplot()+
-   #   labs(title = paste("No GOOD \nabMu =", abundance_mean
-   #                      , "abDisp =", abundance_dispersion
-   #                      , "\nabEF_slope =", function_slope
-   #                      , "abEF_err =", function_error
-   #                      , "\ellq-BEF raw cor"))+
-   #   theme_classic()
-    }
+                , abEF_err = function_error))
+    return(NULL)}
   else{ 
-    print(
+   return(
     befDat %>% ggplot( aes(ell, BEF, color = rb) )+
       geom_point()+
       labs(y = "BEF", title = paste("abMu =", abundance_mean
