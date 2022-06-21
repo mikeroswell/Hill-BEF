@@ -15,25 +15,26 @@ get.Dq = function(vec, q) {
          sum(Exp(vec/sum(vec), q))^(1/(1 - q)),
          exp(-sum((vec/sum(vec))*Ln(vec/sum(vec))))) }
 
-# Tina's code to pull out "families" of curves
-Splits = with(studies, 
-              list(ell.pos.cor >= 2 & ell.neg.cor <=-2,
-                   ell.pos.cor >= 2 & ell.neg.cor > -2,
-                   ell.pos.cor < ell.neg.cor,
-                   ell.pos.cor > -2 & ell.pos.cor < 2 & 
-                     ell.neg.cor > -2 & ell.neg.cor < 2 &
-                     ell.pos.cor > ell.neg.cor,
-                   ell.pos.cor > -2 & ell.pos.cor < 2 & 
-                     ell.neg.cor <= -2))
-
-ell.cor %>% summarise(ell.pos.cor = ell[which.max(Df.cor)],
-                      ell.neg.cor = ell[which.min(Df.cor)],
-                      ell.min.cor = ell[which.min(abs(Df.cor))])
-
-studies = add_column(studies, group = do.call(cbind, Splits) %>% apply(1, which))
-
-
-do.call(cbind, Splits) %>% rowSums
+# # Tina's code to pull out "families" of curves
+# 
+# 
+# ell.cor %>% summarise(ell.pos.cor = ell[which.max(Df.cor)],
+#                       ell.neg.cor = ell[which.min(Df.cor)],
+#                       ell.min.cor = ell[which.min(abs(Df.cor))])
+# 
+# studies = add_column(studies, group = do.call(cbind, Splits) %>% apply(1, which))
+# 
+# Splits = with(studies, 
+#               list(ell.pos.cor >= 2 & ell.neg.cor <=-2,
+#                    ell.pos.cor >= 2 & ell.neg.cor > -2,
+#                    ell.pos.cor < ell.neg.cor,
+#                    ell.pos.cor > -2 & ell.pos.cor < 2 & 
+#                      ell.neg.cor > -2 & ell.neg.cor < 2 &
+#                      ell.pos.cor > ell.neg.cor,
+#                    ell.pos.cor > -2 & ell.pos.cor < 2 & 
+#                      ell.neg.cor <= -2))
+# 
+# do.call(cbind, Splits) %>% rowSums
 
 
 # Fixed parameters
@@ -41,10 +42,10 @@ sites <- 20
 species_number <- 200
 
 # variable ones
-abundance_mean_v <- floor(10^seq(1,3, 0.3)) #150
-abundance_dispersion_v <- seq(0.1, 3, 0.2) #1.5
-function_slope_v <- seq(-2, 2, 0.2) # -1.1
-function_error_v <- 10^seq(-1, 2, 0.2) #50
+abundance_mean_v <- floor(10^seq(1,2.8, 0.4)) #150
+abundance_dispersion_v <- seq(0.05, 2.15, 0.35) #1.5
+function_slope_v <- seq(-2, 2, 0.5) # -1.1
+function_error_v <- 10^seq(-1, 2, 0.5) #50
 
 
 # abundance_mean  <- 150
@@ -52,21 +53,22 @@ function_error_v <- 10^seq(-1, 2, 0.2) #50
 # function_slope <- -1.1
 # function_error <- 50
 
-abundance_mean <- 10
-abundance_dispersion <- 2.9
-function_slope <- -0.8
-function_error <- 6.31
+# abundance_mean <- 10
+# abundance_dispersion <- 2.9
+# function_slope <- -0.8
+# function_error <- 6.31
 
+tic()
 pdf("figures/try_param_combos_for_peak.pdf")
 nc <- 7
 plan(strategy = multiprocess, workers = nc)
-future_map(abundance_mean_v, function(abundance_mean){
+bad_combos <- future_map_dfr(abundance_mean_v, function(abundance_mean){
   map(abundance_dispersion_v, function(abundance_dispersion){
   map(function_slope_v, function(function_slope){
   map(function_error_v, function(function_error){
 
    
-tic()
+
         
 # set site SAD params
 site.abund_mu <- rgamma(sites, shape = abundance_mean)
@@ -146,33 +148,39 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
   # ### linear mod
   # # plot(f ~ Dq[,1], ylim = range(f), xlim=range(Dq), type = "n")
   # sapply(1:length(q), function(x) abline(lm(f ~ Dq[, x]), col=Col[x], lwd=2))
-  BEF <-  tryCatch(apply(Dq, 2, function(x) { cor(f, x) })
+  BEF <-  tryCatch(apply(Dq, 2, function(x) { cor(log(f), log(x)) })
                    , error = function(e) NA
                    , warning = function(w) NA )
 
   
   
-  print(toc())
+
   befDat<-tryCatch(data.frame(ell =1-q, BEF, rb = as.factor(1:ncol(Dq))), error = function(e){e})  
-  if(all(is.na(BEF)) |!is.data.frame(befDat)){ 
-   ggplot()+
-     labs(title = paste("No GOOD \nabMu =", abundance_mean
-                        , "abDisp =", abundance_dispersion
-                        , "\nabEF_slope =", function_slope
-                        , "abEF_err =", function_error
-                        , "\nq-BEF raw cor"))+
-     theme_classic()}
+  if(all(is.na(BEF)) |!is.data.frame(befDat) | abs(range(BEF)[[2]]-range(BEF)[[1]])<0.4){ 
+    
+    data.frame(abMu = abundance_mean
+                , abDisp = abundance_dispersion
+                , abEF_slope = function_slope
+                , abEF_err = function_error)
+   # ggplot()+
+   #   labs(title = paste("No GOOD \nabMu =", abundance_mean
+   #                      , "abDisp =", abundance_dispersion
+   #                      , "\nabEF_slope =", function_slope
+   #                      , "abEF_err =", function_error
+   #                      , "\ellq-BEF raw cor"))+
+   #   theme_classic()
+    }
   else{ 
-    return(
+    print(
     befDat %>% ggplot( aes(ell, BEF, color = rb) )+
       geom_point()+
       labs(y = "BEF", title = paste("abMu =", abundance_mean
                                     , "abDisp =", abundance_dispersion
                                     , "\nabEF_slope =", function_slope
                                     , "abEF_err =", function_error
-                                    , "\nq-BEF raw cor")) +
+                                    , "\nell-BEF raw cor (log-log)")) +
       scale_color_manual(values = rainbow(ncol(Dq))) +
-      geom_vline(xintercept = 0, linetype = 2 ) +
+      geom_vline(xintercept = 1, linetype = 2 ) +
       theme_classic()+ 
       theme(legend.position="none")
     )}
@@ -187,7 +195,7 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
   })
 })
 dev.off()
-
+print(toc())
 
 # pdf("figures/test_looping.pdf")
 # future_map(1:100, function(neplo){
