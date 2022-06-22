@@ -53,10 +53,10 @@ function_error_v <- 10^seq(-1, 2, 0.5) #50
 # function_slope <- -1.1
 # function_error <- 50
 
-abundance_mean <- 10
-abundance_dispersion <- 0.4
-function_slope <- -0.5
-function_error <- 0.31
+abundance_mean <- 63
+abundance_dispersion <- 1.8
+function_slope <- 0
+function_error <- 1
 
 tic()
 pdf("figures/try_param_combos_for_peak.pdf")
@@ -89,6 +89,12 @@ ab_df<-data.frame(t(a)) %>%
 
 ab_df<-ab_df %>% 
   mutate(Biomass = rgamma(1, rate = function_error/exp(5+function_slope*Ln(Abundance)), shape = function_error))
+
+# histograms of abundance at each site
+ab_df %>% ggplot(aes(Abundance)) + 
+  geom_histogram() +
+  theme_classic() +
+  facet_wrap(~site)
 
 # 
 amu <- apply(a, 2, mean)
@@ -162,7 +168,7 @@ Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
                      , abEF_slope = function_slope
                      , abEF_err = function_error))
     return(NULL)}
-  if(abs(range(BEF)[[2]]-range(BEF)[[1]])<0.4 & 
+  if(abs(range(BEF)[[2]]-range(BEF)[[1]])<0.4 | 
     ( !(13<which.max(BEF) & which.max(BEF)<26) | !(13<which.min(BEF) & which.min(BEF)<26))){ 
     
     print(data.frame(abMu = abundance_mean
