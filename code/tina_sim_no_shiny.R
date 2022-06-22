@@ -53,10 +53,11 @@ function_error_v <- 10^seq(-1, 2, 0.5) #50
 # function_slope <- -1.1
 # function_error <- 50
 
-abundance_mean <- 63
+
+abundance_mean <- 25
 abundance_dispersion <- 1.8
 function_slope <- 0
-function_error <- 1
+function_error <- 3.16
 
 tic()
 pdf("figures/try_param_combos_for_peak.pdf")
@@ -96,6 +97,18 @@ ab_df %>% ggplot(aes(Abundance)) +
   theme_classic() +
   facet_wrap(~site)
 
+# abundance across sites
+ab_df %>% 
+  group_by(site) %>% 
+  summarize(site_total_abundance = sum(Abundance)) %>% 
+  ggplot(aes(site_total_abundance)) + 
+  geom_histogram() + 
+  theme_classic()
+
+
+
+
+
 # 
 amu <- apply(a, 2, mean)
 avar <-apply(a, 2, sd)
@@ -117,6 +130,30 @@ q <- seq(-3, 5, by = 0.2)
 # derived function and diversity
 f <- colSums(a*z)
 Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
+aTot <- colSums(a)
+colnames(Dq)<-4:44
+
+d_effed <- data.frame(site = 1:sites, aTot, EFTot = f) %>% bind_cols(Dq)
+
+befDF <- d_effed %>% 
+  pivot_longer(4:44, names_to = "quell", values_to = "D") %>% 
+  mutate(ell = 1-q[as.numeric(quell)-3]) %>% 
+  select(-quell)
+
+befDF %>% ggplot(aes(D, EFTot)) +
+  geom_point() +
+  facet_wrap(~ell, scales = "free") +
+  theme_classic() +
+  scale_y_log10() +
+  scale_x_log10()
+
+befDF %>% ggplot(aes(aTot, D)) + 
+  geom_point() +
+  facet_wrap(~ell, scales = "free") +
+  theme_classic() +
+  scale_y_log10() +
+  scale_x_log10()
+
 # sites in rows, q' in columns
 # x.ax.val = seq(min(Dq), max(Dq), by = 1)
 
