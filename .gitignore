@@ -41,6 +41,9 @@ vignettes/*.pdf
 # html files more generally
 *.html
 
+# all .pdfs!
+*.pdf
+
 # oversized files
 
 data/hill_sim*
