@@ -6,6 +6,7 @@ library(furrr)
 # loop over ell
 
 ell_vec<-seq(-10, 10, 0.2)
+ell_vec <- c(exp(seq(-12,3, 0.1)), -(exp(seq(-12,3, 0.1))))
 
 # set number of "cores" to use for parallelization
 # on intel mac at least, hyperthreading is used so the maximum is double the 
@@ -32,7 +33,17 @@ sum_by_ell <- function(dat
 
 # res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
 
+
+
 res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
+
+res %>% filter(meanlat > 45) %>% 
+  ggplot(aes(ell, D, color = meanlat)) +
+  geom_point(size = 0.2) +
+  theme_classic()+
+  scale_color_viridis_c()+
+  scale_y_log10() +
+  xlim(c(-10, 2))
 
 
 # # check my work
@@ -56,18 +67,31 @@ fit_lms <- function(sub, dataset = "lefcheck"){
     EF.slope = pcf.slope + ab.slope
     EF.cor = cor(Ln(dat$EFt)
                  , Ln(dat$D))
-    ab.cor = ab.slope* sd(Ln(dat$D))/(sd(
+    ab.cor.part = ab.slope* sd(Ln(dat$D))/(sd(
       mean(Ln(dat$pcf)) * Ln(dat$ab)
     ))
-    pcf.cor = pcf.slope * sd(Ln(dat$D))/(sd(
+    pcf.cor.part = pcf.slope * sd(Ln(dat$D))/(sd(
       mean(Ln(dat$ab)) * Ln(dat$pcf)
     ))
+    
+    ab.cor.raw = cor(Ln(dat$ab), Ln(dat$D))
+    pcf.cor.raw = cor(Ln(dat$D), Ln(dat$pcf))
+    EF.spe = cor(Ln(dat$EFt)
+                 , Ln(dat$D)
+                 , method = "spearman")
+    ab.spe = cor(Ln(dat$ab), Ln(dat$D), method = "spearman")
+    pcf.spe = cor(Ln(dat$D), Ln(dat$pcf), method = "spearman")
     return(data.frame(pcf.slope
                       , ab.slope
                       , EF.slope
                       , EF.cor
-                      , ab.cor
-                      , pcf.cor
+                      , ab.cor.part
+                      , pcf.cor.part
+                      , EF.cor.spe = EF.spe
+                      , ab.cor.spe = ab.spe
+                      , pcf.cor.spe = pcf.spe
+                      , ab.cor.raw
+                      , pcf.cor.raw
                       , ell
                       , Latitude = dat$meanlat
                       , dataset = dataset
@@ -86,6 +110,35 @@ first_out <- map_dfr(unique(res$Province), function(Province){
 # for now save data so I can restart computer
 # write.csv(first_out, "data/lefcheck_results.csv", row.names = F)
 # first_out<-read.csv("data/lefcheck_results.csv")
+
+pdf("figures/rank_correlations.pdf")
+first_out %>% 
+  pivot_longer(cols = ends_with(".slope")
+               , values_to = "slope"
+               , names_to ="component") %>%
+  pivot_longer(cols = contains("cor")
+               , values_to = "correlation"
+               , names_to ="correlation_component") %>%
+  filter(grepl("spe", correlation_component )) %>% 
+  group_by(Province, Latitude) %>% 
+  ggplot(aes(ell, correlation, color = Latitude))+
+  geom_point(size = 0.2) +
+  facet_wrap(~correlation_component) +
+  theme_classic()+
+  geom_hline(yintercept = 0, size = 0.2)  +
+  labs(color = "mean absolute \nlatitude for \nprovince")+
+  scale_color_viridis_c(option = 
+                          "plasma") +
+  geom_vline(xintercept = 1, size = 0.2) +
+  scale_x_continuous(trans = scales::trans_new("cuberoot"
+                                       , function(x){sign(x)*(abs(x))^(1/3)}
+                                       , inverse = function(x){x^3}
+                                       , breaks = function(x){round(x,2)})
+                     , breaks = c(-5, -3, -1, -0.5, -0.1, 0.1,  0.5, 1,  3,5 )) +
+  theme(axis.text.x = element_text(angle = 90))
+dev.off()
+
+
 
 # slopes and counterfactuals in blue, black, and red
 pdf("figures/lefcheck_partitions.pdf")

@@ -37,6 +37,11 @@ lefcheck_by_site<-lefcheck %>%
 load("data/bci_tree8.rdata")
 head(bci.tree8)
 
+bci.tree8 %>% 
+  group_by(treeID) %>% 
+  summarize(agbs = n_distinct(agb)) %>% 
+  arrange(desc(agbs))
+
 bci_sum <- bci.tree8 %>% group_by(sp) %>% 
   summarize(Biomass = sum(agb)
             , Abundance = n()

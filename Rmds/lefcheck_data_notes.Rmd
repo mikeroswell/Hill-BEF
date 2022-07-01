@@ -1,0 +1,260 @@
+---
+title: "Lefcheck_data"
+author: "Tina Harrison"
+date: "6/22/2022"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(magrittr)
+library(dplyr)
+```
+
+# Introduction
+
+[Mark's!]
+
+# Empirical ell-BEF patterns in the Lefcheck data
+
+
+```{r, echo=FALSE}
+# all code developed in "why.R", following Michael's code
+load("lefcheck_by_site")
+ load("res")
+
+
+
+studies = read.csv("per_Province_table.csv")
+ell.cor = res %>% group_by(Province, ell) %>% 
+  summarise(Df.cor = cor(log(f.tot), log(D)),
+            DA.cor = cor(log(A.tot), log(D)),
+            Dz.cor = cor(log(z.bar), log(D)),
+            Af.cor = cor(log(f.tot), log(A.tot)),
+            zf.cor = cor(log(f.tot), log(z.bar))
+          )
+
+studies$Af.cor = with(ell.cor, (Af.cor[ell == 1])[match(studies$Province, Province[ell==1])])
+studies$zf.cor = with(ell.cor, (zf.cor[ell == 1])[match(studies$Province, Province[ell==1])])
+# with(studies, plot(gamma ~ c(mean.A*sites), log="xy"))
+```
+
+
+We looked at ell-BEF relationships in the Lefcheck data, which is counts and biomass of fish collected/observed along fixed area transects distributed over [blah geographic area]. We used a geographic grouping variable to group transects into 32 fish metacommunities of 11-186 sites each (median 59 sites), with total metacommunity size ranging from about 3,700 - 2,300,00 individual fish (median 180,000 fish), and total species numbers ranging from 24 to 900 (median 220 species). For each transect we calculated fish diversity at a range of ell values (-10 to 10 at 0.5 intervals),together with total biomass, the ecosystem function outcome. Then, for each ell value we calculated the correlation between log diversity and log total biomass across sites within a metacommunity. In the figure below, each metacommunity is plotted as a line showing the BEF correlation changing with ell. 
+
+```{r}
+par(mfrow=c(2,3), mar=c(2,2,.5,.5))
+lapply(1:5, function(x) {
+  plot(c(-5,5), c(-.5,1), type="n", xlab="", ylab="")
+  ell.cor %>% 
+    subset(Province %in% studies$Province[studies$group == x]) %>% 
+    group_split %>% lapply(function(x) {points(x$ell, x$Df.cor, type="l")})
+  abline(h=0, col="gray", lty=3)
+  abline(v=c(-2,2), col="gray", lty=3)
+  text(-4, 0.8, pos=4, paste("group", x), cex=1.5)
+})
+```
+
+Most of these ell-BEF curves have a similar form. Correlations between low ell diversities and EF are weak and have variable, often negative slope. Correlations between high ell diversities and EF, on the other hand, are always positive and often strong. Although we calculated diversities up to ell = (-10, 10), site diversity profiles only appreciably change in a narrow ell = (-2, 2) range. At intermediate ell values beween -2 (inverse Simpson) and 2, site diversity profiles and therefore cross-site BEF correlations change rapidly. The typical rapid rise (group 1) may be complicated by a minimum correlation in the intermediate ell range (group 2), a maximum correlation at intermediate ell (group 5), or both (group 4). A few metacommunities have atypical decreases in correlation as ell increases (group 3).
+ 
+Taking these correlation profiles at face value, at what ell value is diversity most predictive of ecosystem function? 
+ 
+``` {r}
+ell.cor %>% group_by(Province) %>% summarise(best.r = ell[which.max(Df.cor^2)]) %$% best.r %>% hist(main = "ell with best R2", breaks=20, col="lightblue")
+hist(c(1,1,2), add=T, col="orange")
+```
+For 20 metacommunities, the BEF R2 is highest at or near richness (ell = 0.5-1.5, mode at ell = 1.5). For 9 metacommunities, BEF R2 is highest at high ell (ell = 6-10, mode at ell = 10). Note that for all ell > 2 (and ell < -2), there is almost no variation in correlation or R2. No metacommunities have best BEF R2 at Shannon (ell = 0) or Simpson (ell =-1). 
+
+In conclusion, the naive answer to our question about "best" ell is: either at or just above richness, or at higher ell values.  High-ell diversities (usually!) rapidly converge on abundance, so we have essentially discovered that abundance is a good predictor of function - which we know (Gaston 2011, Winfree et al. 2015). However, richness is usually somewhat better than abundance, and alway better than Shannon and Simpson. Other studies have found similar results (cite cite); but I'm still a bit surprised, both because abundance seems as if it should be stronger, and because Shannon or Simpson describe the type of diversity that I think matters for most BEF mechanisms. Low-ell diversities, which converge on the inverse proportional abundance of the dominant species, are weakly related to total ecosystem function (R2 < 0.2), with variable sign.
+
+# plot everyone together
+
+```{r}
+logaxis = function(x) {ifelse(x>=0, log(x+1),-log(abs(x)+1))}
+# plot(logaxis(ell_vals), ell_vals, xaxt="n")
+# axis(1, at = logaxis(ell_vals), labels=ell_vals)
+
+par(mfrow=c(1,1), mar=c(4,4,.5,.5))
+
+  plot(logaxis(c(-10,10)), c(-.5,1), type="n", xlab="ell", ylab="cor(D, EF)", xaxt="n")
+  axis(1, at = logaxis(c(-10, -5, -2, -1, 0, 1, 2, 5, 10)), 
+       labels=c(-10, -5, -2, -1, 0, 1, 2, 5, 10))
+  ell.cor %>% group_by("Province") %>%
+    group_split %>% lapply(function(x) {points(logaxis(x$ell), x$Df.cor, type="l")})
+  abline(h=0, col="gray", lty=3)
+abline(v=logaxis(c(-1,0,1)), lty=rev(1:3))
+text(-4, 0.8, pos=4, "fish biomass", cex=1.5)
+```
+
+
+# Why
+
+At every turn in trying to explain our results, we run into abundance. Abundance controls the diversities in different ways to different extents along the ell axis, through sampling and mathematical constraints. Abundance controls total function, to the extent that its relevant variation is much higher than per-capita function (usually relevant to pollinators Vazquez et al. 2005 although not necessarily for fish and tree data). Finally, in fish and tree data (but not bee data), abundance partly controls total per-capita function: at some point, plot with more individual trees can only be achieved by having smaller trees; and it is minnows not sharks that contribute to the highest fish abundances.
+
+Since total function is the product of total abundance and mean per-capita function, its relationship with diversity must reflect the relationship between total abundance and diversity, and between mean per-capita function and diversity. Let's examine these correlations over different values of ell:
+
+```{r}
+par(mfrow=c(2,3), mar=c(2,2,.5,.5))
+lapply(1:5, function(x) {
+  plot(c(-5,5), c(-1,1), type="n", xlab="", ylab="") 
+  ell.cor %>% 
+    subset(Province %in% studies$Province[studies$group == x]) %>% 
+    group_split %>% lapply(function(x) {
+      points(x$ell, x$Dz.cor, type="l", col="blue")
+      points(x$ell, x$DA.cor, type="l", col="red")})
+  abline(h=0, col="gray", lty=3)
+  abline(v=c(-2,2), col="gray", lty=3)
+  abline(v=1)
+  text(-4, 0.8, pos=4, paste("group", x), cex=1.5)
+})
+```
+
+As expected, at high ell, diversity is almost perfectly correlated with total abundance (red lines, right hand side). At low ell, diversity is usually negatively correlated with abundance, although variation is possible; intermediate ells mostly see the transition, but with occasional marked dips between Shannon and richness. The pattern for diversity and per-capita function 
+
+
+
+Is total abundance such an important predictor of total function, that the diversities are trivial? Very crudely, let's re-plot the BEF R2 from each fish metacommunity at some different ell values, over the R2s of the correlations between log total function and log total abundance.
+
+```{r}
+Ells = c(-10, 0, 1, 10)
+
+par(mfrow=c(1,2))
+ell.cor$look = (studies$sites)[match(ell.cor$Province, studies$Province)]
+#hist(log(100*look))
+
+subset(ell.cor, ell %in% Ells) %>% with(plot(Af.cor^2, Df.cor^2, col=as.factor(ell), pch=19, cex=log(look, 50))); legend("bottomright", legend=Ells, pch=19, col=as.factor(Ells)); abline(0,1)
+
+with(studies, plot(Af.cor^2, zf.cor^2, cex=log(sites, 10))); abline(0,1)
+
+
+
+```
+
+From this plot we can see that richness (green) is often a superior predictor (above the 1:1 line), especially in metacommunities where abundance is poorly correlated with total function (presumably because of species' per-capita function). Of course, if abundance is not 
+
+
+. However, diversities around ell =1 and ell =1.5 can outperform abundance when predicting total ecosystem function. In particular, richness outperforms abundance when abundance-total function correlations are weak (wait of course it does?). At
+
+
+
+
+High-ell diversities (usually!) rapidly converge on abundance, so we have essentially discovered that abundance is often the best predictor of function - which we know (Gaston 2011, Winfree et al. 2015). At low ell, diversities track dominance, which is lower in 
+
+```{r}
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% summarise(
+  p.max = max(Abundance)/sum(Abundance),
+  p.min = min(Abundance)/sum(Abundance),
+  a.tot = sum(Abundance)
+) %>% group_by(Province) %>% summarise(
+  cor.p_max = cor((p.max), log(a.tot)),
+  cor.p_min = cor((p.min), log(a.tot))) %>% .[,-1] %>% 
+  plot(xlim=c(-1,1), ylim=c(-1,1)); abline(h=0,v=0)
+  
+  # apply(2, function(x) {hist(x, main="", xlab="", xlim=c(-1,1))})
+```
+
+
+
+
+
+
+
+
+Well, we have follow up questions. High-ell diversities track abundance (and more or less converge on it by ell = 10), so we have essentially discovered that abundance is often the best predictor of function - which we know (Gaston 2011, Winfree et al. 2015). It contradicts my impulse to  richness is often better than abundance, and alway better than Simpson or Shannon, is a bit more interesting. Finally, low-ell diversities track dominance; that this is such a weak and variable predictor of function is also not necessarily a forgone conclusion. 
+
+[To gain more insight -- ughhh writing that kind of vague phrase means some important work is not being done]
+
+NOTE. When communities are highly even, don't all the diversities converge on richness?
+
+
+
+Within a site, species' abundance and per-capita function (both logged) are negatively correlated. Here are two example sites and the distribution of all sites (with four or more species).
+
+```{r}
+par(mfrow=c(1,3))
+
+sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == levels(factor(SiteCode))[k]), plot(log(c(Biomass/Abundance)) ~ log(Abundance), main=paste("site =", SiteCode[1])))})
+
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
+  summarise(BA.cor = cor(log(Abundance), log(Biomass/Abundance)),
+            nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, bar z)"); abline(v=0)
+````
+
+
+Species' abundance and total function is positively correlated within sites: few big fish are not big enough to outweigh many small fish.
+
+```{r}
+par(mfrow=c(1,3))
+
+sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == levels(factor(SiteCode))[k]), plot(log(c(Biomass)) ~ log(Abundance), main=paste("site =", SiteCode[1])))})
+
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
+  summarise(BA.cor = cor(log(Abundance), log(Biomass)),
+            nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, z)"); abline(v=0)
+````
+
+The same negative correlation between total abundance (or mean per-species abundance) and mean per-capita function occurs across sites within a province. 
+
+
+
+
+Both the within-site and across-site relationships are funnel shaped: the most abundant sites are dominated by many little fish and have low mean per-capita function. However, the least abundant sites are extremely variable, and their mean body sizes range from the smallest to largest values. 
+
+I guess... it does more or less have to be true: that the only way to fit extreme numbers of fish (or trees) into a small observation area, is to make most of them really tiny.
+
+```{r}
+# load("lefcheck_by_site"); load("res")
+par(mfrow=c(1,2))
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% summarise(bar.z = sum(Biomass)/sum(Abundance), a.tot = sum(Abundance), bar.z.25 = sum(Biomass[Biomass < quantile(Biomass, .25)])/sum(Abundance[Biomass < quantile(Biomass, .25)]), bar.z.75 = sum(Biomass[Biomass > quantile(Biomass, .75)])/sum(Abundance[Biomass > quantile(Biomass, .75)])) %>% group_by(Province) %>% summarise(az.cor.25 = cor(log(a.tot), log(bar.z.25)), az.cor.75 = cor(log(a.tot), log(bar.z.75))) %>% as.data.frame %>% .[,-1] %>% boxplot; abline(h=0) 
+# OK, interesting. In more abundant sites, the smallest species are somewhat larger. But, the largest species are smaller.
+
+
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% summarise(bar.z = sum(Biomass)/sum(Abundance), a.tot = sum(Abundance), bar.a.25 = mean(Abundance[Biomass < quantile(Biomass, .25)]), bar.a.75 = mean(Abundance[Biomass > quantile(Biomass, .75)])) %>% group_by(Province) %>% summarise(a.cor.25 = cor(log(a.tot), log(bar.a.25)), a.cor.75 = cor(log(a.tot), log(bar.a.75))) %>% as.data.frame %>% .[,-1] %>% boxplot; abline(h=0) 
+```
+
+Across sites within a province, sites with high abundance (or mean per-species abundance) also have lower per-capita function. 
+
+
+
+Therefore, low ell diversity measures the degree to which a community is dominated by little fish. 
+
+# High ell diversity stuff [Michael]
+
+rarity of rarest (high ell stuff)
+```{r}
+lefcheck_by_site %>% colnames
+lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
+  summarise(min.a = min(Abundance), tot.a = sum(Abundance)) %>%
+  subset(select=c("min.a", "tot.a")) %>% plot(log="y")
+```
+
+
+
+
+# Hill diversities, interpretation and sampling considerations
+
+Diversities at negative ell values reflect the proportional abundance of dominant species. As ell gets more negative, diversities rapidly converge on the inverse proportional abundance of the single most abundant species, $1/p_{max} = A/a_{max}$. Diversities at positive ell values reflect the proportional abundance of rare species. As ell gets more positive, diversities rapidly converge on the inverse proportional abundance of the single rarest species, $1/p_{min} = A/a_{min}$; in count data where $a_{min} = 1$, diversity simply converges on total abundance $A$.
+
+In all samples from a larger community, diversities are estimated with large downward bias. This is increasingly true with smaller samples, less evenness, and higher ell (there are, of course, known corrections at least up to richness). It's somewhat hard to intuit why very low ell diversities can be downward biased; the answer is, in very uneven communities, total abundance is distributed among a large number of rare species that don't appear in small samples, leading to systematic overestimation of dominance. However, in many metacommunities low-ell diversities are close to unbiased. At the same time, diversity estimates in small samples are highly variable at low ell (and moreso in small samples from less even communities), and not variable at high ell.   
+
+# Simulation
+
+Why are we doing this, again?
+
+## No interactions
+
+Parameterize two independent stationary gamma distributions that describe the mean and dispersion of population sizes at $N$ sites. This allows sites to vary in both productivity and evenness. For each site, draw one mean and one dispersion parameter to specify a negative binomial distribution, from which you can draw abundances for $S$ species, resulting in a random metacommunity matrix $a_{ki}$ with species in rows and sites in columns. 
+  This method will not produce realistic beta or gamma diversity, since there are no species-level abundance parameters. It will also produce underdispersed alpha diversities, relative to realistic communities, if site-level mean abundance is large, abundance dispersion is small, or if $S$ is small. One clear signature of unrealistic parameters is a narrow range of site richness that approaches the total species pool size. Finally, I think that total abundances at sites are overdispersed, relative to realistic communities. This is more of a problem than the other things, I think. Adding species-level controls might help.
+
+Next, generate per-capita EF data for the same data set. Some of our ecological ideas involve positive or negative abundance-EF correlations. So here, we choose a single stationary slope $\beta$ to relate abundance to an expected per-capita EF for each population, using a log link function:
+$z_{ik}^{\mu} = exp(\alpha + \beta \cdot a_{ik})$
+Which is then given some gamma-distributed error with a single stationary community-wide shape parameter, $z_{ik} \sim \Gamma(\sigma, \sigma/z_{ik}^{\mu})$.   
+
+## Interactions
+
+Species interactions can contribute to either higher abundance or higher per-capita function; I suppose in most cases it is both, depending on species' different life history strategies. Here I am following Connolly et al 2013 Eqn 3b in adding the diversity effect to the community total function, which keeps agnostic about where the diversity effect occurs or how it is distributed across species. The diversity effect itself is $\delta \sum_{i<j}^S(p_ip_j)^\theta$, where $\delta$ is the average probability of interaction between species pairs, 
+
+So. Total function at the $k^{th}$ site has an additive component and an interaction component:
+$t_k = \sum_i^S (a_{i}z_{i}) + \delta \sum_{i<j}^S(p_ip_j)^\theta$
+(currently has no associated error).
+

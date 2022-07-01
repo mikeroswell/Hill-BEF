@@ -12,10 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Overview
-Some of what makes one $\ell$ value more predictive of function than another is
-about biology, other parts are about math. This is a live document to record
-some quantitative relationships (both formal and informal) about Hill diversity
-that may lead to clearer interpretations of empirical findings.
+Some of what makes one Hill diversity at on value of $\ell$ more predictive of
+function than at another is about biology, other parts are about math. This is a
+live document to record some quantitative relationships (both formal and
+informal) about Hill diversity that may lead to clearer interpretations of
+empirical findings.
 
 ## Hill number definition
 
@@ -60,16 +61,161 @@ of a set of assemblages when $\ell = \infty$ and when $\ell = -\infty$ is $-1$.
 More simply, the even assemblage has maximum diversity for $\ell<1$ and minimum
 diversity when $\ell>1$.
 
-## interpretations
+## Variable abundances
+
+### High $\ell$
+
+Assume data for many communities of variable SADs and abundance. In a given
+community or sample, there is a minimum possible abundance for any one
+species... this is less a biological point than a sampling one... in count data
+you can't have less than one individual; in continuous abundance data (e.g.
+cover), there will still be a minimum threshold at which species aren't
+included, detected, or recorded.
+
+As $\ell \rightarrow \infty$, $D$ approaches $N/min(n)$, where $n$ is the vector
+of species abundances (and $N$ is the sum of that vector). In most cases, this
+means $D$ is tightly correlated with $N$ for high values of $\ell$, as $min(n)$
+likely varies little across communities [or samples] and is likely not strongly
+related to abundance.
+
+It is possible for $cor(log(D_{\ell \rightarrow \infty}), log(N))$ to be
+negative, but it is unlikely to occur in natural, diverse communities which
+nearly always have very rare species and vagrants at the minimum possible
+abundance. However, this situation could occur in experiments or in very simple
+systems with high abundance (we've imagined *Daphnia* in a lake). Namely, for
+this to occur, $min(n)$ must monotonically increase with $N$, and
+$sd(log(min(n))) > sd(log(N))$. This should be fairly clear re-arranging the
+equation for correlation:
+
+
+$cor(X,Y) = \frac{E(X*Y)-mean(X)*mean(Y)}{sd(X)*sd(Y)}$
+
+Recalling that $D_{\ell \rightarrow \infty} = N/min(n)$, naming $min(n) = b$, and using
+law of logs to do a bit of re-arranging, we have:
+
+
+$cor(log(D), log(N)) = \frac{E[log(N)^2 - log(N)*log(b)] - [mean(log(N))^2 - mean(log(N))*mean(log(b))]} {sd(log(N)*sd(log(b))}$
+
+
+The upshot of this is that (on the log-log scale), high-$\ell$ diversity is
+nearly always strongly, positively correlated with total abundance. The possible 
+exceptions are when there is big variability in minimum abundance relative to
+the variability in total abundance. Without a monotonic positive relationship
+between minimum and total abundance, this can weaken the correlation, and with
+that relationship, it can be negative.
+
+### Large negative $\ell$
+
+### Inverse dominance and abundance
+The relationship between abundance and Hill diversity for large negative $\ell$
+values (converging on inverse dominance at the limit) can be positive, negative,
+or non-existent, and tends not to be very strong. Because the maximum value of
+inverse dominance is set by richness, and not by abundance *per se* (as it is
+for large positive $\ell$ values), it makes intuitive sense that the
+relationship between abundance and diversity would be weaker for large negative 
+$\ell$ values than for large positive ones. 
+
+In at least some empirical datasets we see a tendency towards a negative 
+relationship between inverse dominance and abundance. This means that in larger 
+communities, the degree of dominance is higher, which may be a result of highly
+abundance species being able to take advantage of productive habitats (i.e. have 
+high intrinsic growth rates). 
+
+
+
+## Interpretations
 
 When $\ell \rightarrow \infty$, $D$ conveys information primarily about
-*abundance*
+*abundance*. For our empirical data, we expect these Hill diversities to be
+highly, positively predictive of function because function tends to increase
+with abundance (and for our functions, adding one individual can only increase,
+and not decrease, total function).
 
 When $\ell \rightarrow -\infty$, $D$ conveys information primarily about
-*dominance* (but not really evenness, which is complicated)
+*dominance* (but not really evenness, which is complicated). The relationship 
+between large negative $\ell$ diversities and function is often weak but highly
+variable, and can be positive, negative, or essentially non-existent.
 
 When the predictive ability of $D$ is maximized when $\ell \neq (-\infty, 1,
-\infty)$ it is hard to say what aspects of the SAD are most salient.
+\infty)$ it is hard to say what aspects of the SAD are most salient. We need to 
+develop our thinking here a bit more, since this seems to happen sometimes in 
+empirical (and simulated) data and it's not only about abundance. It seems 
+possible, also, that the high correlations at or very near richness are a deep
+ecological or perhaps numerical thing that we definitely want to discuss.
+
+```{r scratchpad}
+
+# saved some of the fiddling
+
+y <- c(1, 2, 3)
+x <- c(10, 20, 31)
+(mean(log(x)^2-log(x)*log(y))-
+((mean(log(x)))^2-mean(log(x))*mean(log(y)))) /
+(sd(log(x))*sd(log(x/y)))
+
+
+x <- c(11, 20, 30)
+
+(mean(log(x)^2-log(x)*log(y))-
+((mean(log(x)))^2-mean(log(x))*mean(log(y)))) /
+(sd(log(x))*sd(log(x/y)))
+
+x <- c(10, 20, 29)
+
+(mean(log(x)^2-log(x)*log(y))-
+((mean(log(x)))^2-mean(log(x))*mean(log(y)))) /
+(sd(log(x))*sd(log(x/y)))
+
+mean(x-y)
+mean(x) - mean(y)
+
+mean(x) * mean(y)
+mean(x*y)
+mean(x)^2
+mean(x^2)
+
+y <- rnorm(100, 5, 1)
+x <- rnorm( 100, 50, 4)
+x <- rnbinom(100, mu = 2000, size = 2)
+y <- rnbinom(100, mu = 1000*x^-1.1, size = 0.01) +1
+
+y <- sapply(7-round(log(x^1.5, 10)), function(x){max(x,1)})  # rbinom(100, size = 1, prob = x^-0.5 ) + 1
+y <- rnbinom(100, mu = 0.2, size = 1-x^-0.03) +1
+
+
+x <- c(11, 20, 30)
+y <- c(1, 2, 3)
+
+
+x1 <- (rnbinom(3, mu = 1800, size = 5))
+x <- x1[order(x1)]
+y1 <- rnbinom(3, mu = 23, size = 0.1) 
+y2 <- sapply(y1, function(x){max(x,1)})
+y <- y2[order(y2)]
+
+x-mean(x)
+y-mean(y)
+sd(x)
+sd(y)
+log(x)-mean(log(x))
+log(y)-mean(log(y))
+sd(log(x))
+sd(log(y))
+
+x<- x1
+y <- y2
+
+(mean(x*(x/y))-mean(x)*mean(x/y))/
+  (sd(x)*sd(x/y))
+
+
+(mean(log(x)^2-log(x)*log(y))-
+((mean(log(x)))^2-mean(log(x))*mean(log(y)))) /
+  (sd(log(x))*sd(log(x/y)))
+
+
+
+```
 
 
 
