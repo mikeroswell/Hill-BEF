@@ -1,14 +1,17 @@
 ---
 title: "Hill_postulae"
 author: "Michael Roswell, Mark Genung, Tina Harrison"
-date: "2/14/2022"
-output: 
+date: "7/04/2022"
+output:
   pdf_document: default
   html_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(MeanRarity)
 ```
 
 ## Overview
@@ -38,32 +41,38 @@ Equations 1 and 2 are equivalent when $\ell = 1-q$.
 
 ## Ranges of Hill numbers (assuming perfect observation)
 
-For a given combination of $S$, $N$ (i.e. number of individuals), and $\ell$, 
-there is a range of values that $D$ can possibly take. When $\ell$ is large, 
-this range is also large, and when it is a large negative number, the range is 
-much smaller, when $\ell = 1$ this range is at its minimum, $D=S$, for any $N$,
-distribution of relative abundance.
+For a given combination of $S$, $N$ (i.e. number of individuals), and $\ell$,
+there is a range of values that $D$ can possibly take. When $\ell = 1$ this
+range is at its minimum, $D=S$, for any $N$, distribution of relative abundance.
 
 For $\ell \geq 1$, the minimum value $D$ can take is $S$ (maximum evenness). As
 $\ell \rightarrow \infty$, the maximum value of $D$ grows to the maximum species
 rarity, i.e. $N$. When $1 \leq \ell < \infty$, $D$ reaches its maximum with
-maximum dominance, but as $\ell \rightarrow \infty$ the maximum rarity drives
-$D$ regardless of the shape of the species abundance distribution.
+uneven communities, but as $\ell \rightarrow \infty$, only the rarest species
+and abundance (i.e., the maximum rarity) drives $D$ regardless of the shape of
+the species abundance distribution.
 
 For $\ell <1$, the *maximum* value $D$ can take is $S$ (maximum evenness). As
 $\ell \rightarrow -\infty$, the minimum value of $D$ shrinks to the minimum
 species rarity, i.e. something nearing $1$ when $N >> S$ (maximum dominance).
 
-## D-flipping
+## Diversity rankings across the $\ell$ spectrum and evenness.
 
-For a given $S$, $N$, the spearman rank correlation between the Hill diversity
-of a set of assemblages when $\ell = \infty$ and when $\ell = -\infty$ is $-1$.
-More simply, the even assemblage has maximum diversity for $\ell<1$ and minimum
-diversity when $\ell>1$.
+The even assemblage has maximum diversity for $\ell<1$ and minimum diversity
+when $\ell>1$. Because other considerations matter as well, this does not simply
+mean that the rank order of assemblages' diversities necessarily flips between
+large positive and negative $\ell$ (and they can change many times and at many
+values of $\ell$; Hill diversity profiles can cross at least three times). By
+many definitions of evenness (i.e., those that consider evenness a ratio of one
+Hill diversity to richness, or a transformation thereof, see Chao and Ricotta),
+it is a simple tautology that evenness is positively related to diversity for
+$\ell<1$, negatively related to $\ell>1$, and *unrelated* to richness itself
+(though sampling realities make this last point particularly unlikely).
+
 
 ## Variable abundances
 
-### High $\ell$
+### Large positive $\ell$
 
 Assume data for many communities of variable SADs and abundance. In a given
 community or sample, there is a minimum possible abundance for any one
@@ -106,44 +115,138 @@ that relationship, it can be negative.
 
 ### Large negative $\ell$
 
-### Inverse dominance and abundance
 The relationship between abundance and Hill diversity for large negative $\ell$
 values (converging on inverse dominance at the limit) can be positive, negative,
 or non-existent, and tends not to be very strong. Because the maximum value of
 inverse dominance is set by richness, and not by abundance *per se* (as it is
-for large positive $\ell$ values), it makes intuitive sense that the
-relationship between abundance and diversity would be weaker for large negative 
-$\ell$ values than for large positive ones. 
+for diversity at large positive $\ell$ values), it makes intuitive sense that
+the relationship between abundance and diversity would be weaker for large
+negative $\ell$ values than for large positive ones.
 
-In at least some empirical datasets we see a tendency towards a negative 
-relationship between inverse dominance and abundance. This means that in larger 
-communities, the degree of dominance is higher, which may be a result of highly
-abundance species being able to take advantage of productive habitats (i.e. have 
-high intrinsic growth rates). 
+In at least some empirical datasets, we see a tendency towards a negative
+relationship between inverse dominance and abundance. This means that in more
+abundant assemblages, the degree of dominance is higher, which may be a result
+of highly abundance species being able to take advantage of productive habitats
+(i.e. have high intrinsic growth rates).
 
+### $\ell$ near 1
+Even with big variation around larger magnitude values of $\ell$, diversity
+changes little, because when the magnitude of $\ell$ is large, diversity is
+likely close to its asymptotic value, and largely sensitive to only two values
+($N$ and either $max(n)$ or $min(n)$ (CITE May 1975 from Cody and Diamond)).
+However, at intermediate $\ell$ values (not sure exactly what this means but
+something in the realm of $-0.5 < \ell <1.5$), Diversity is more sensitive to
+the full distribution of relative abundances, and, of course, to richness *per
+se*.
 
+In curves (relating $\ell$ on the x to the correlation between abundance and
+diversity on the y), the ends have to be pretty flat (because diversity
+converges on its left and right asymptotes when the magnitude of $\ell$ is
+large)... but if there is going to be one or more peaks, they must occur near
+the less constrained middle of the curve. In curves  plotted from simulated and
+empirical data, we see peaks and valleys off the other wise smooth step-up along
+the transition from negative to positive $\ell$. We know to expect change in the
+vicinity of $\ell = 1$, but more details, such as the $\ell$ values of
+inflection points and peaks, or the cause of very smooth vs. more complex
+shapes, remain a bit mysterious.
 
 ## Interpretations
 
-When $\ell \rightarrow \infty$, $D$ conveys information primarily about
-*abundance*. For our empirical data, we expect these Hill diversities to be
-highly, positively predictive of function because function tends to increase
-with abundance (and for our functions, adding one individual can only increase,
-and not decrease, total function).
+When $\ell \rightarrow \infty$, $D$ is (usually) driven almost entirely by
+*abundance*. For our empirical data, we also expect high-$\ell$ Hill diversities
+to be highly, positively predictive of function because function tends to
+increase with abundance (and for our functions, adding one individual can only
+increase, and not decrease, total function).
 
 When $\ell \rightarrow -\infty$, $D$ conveys information primarily about
 *dominance* (but not really evenness, which is complicated). The relationship 
 between large negative $\ell$ diversities and function is often weak but highly
 variable, and can be positive, negative, or essentially non-existent.
 
-When the predictive ability of $D$ is maximized when $\ell \neq (-\infty, 1,
-\infty)$ it is hard to say what aspects of the SAD are most salient. We need to 
-develop our thinking here a bit more, since this seems to happen sometimes in 
-empirical (and simulated) data and it's not only about abundance. It seems 
-possible, also, that the high correlations at or very near richness are a deep
-ecological or perhaps numerical thing that we definitely want to discuss.
+When the predictive ability of $D$ is maximized when $\ell \notin (-\infty, 1,
+\infty)$ it is hard to say what aspects of the SAD are most salient. We need to
+develop our thinking here a bit more, since this seems to happen sometimes in
+empirical (and simulated) data and it's not only about abundance, inverse
+dominance, or richness alone.
 
-```{r scratchpad}
+
+
+## Sampling issues with diversity
+
+### bias
+In all samples from a larger assemblage, sample Hill diversities are substantially
+below their true assemblage-level values. This is increasingly true with smaller
+samples, less evenness, and higher $\ell$. Because the naïve, sample diversity
+is a strongly downward-biased estimate of true diversity, there exist many
+reduced-bias estimators, at least up to richness; for $\ell<<1$ these may have
+little and/or positive bias (e.g. inverting E.H. Simpson's unbiased estimator of
+the Simpson's concentration produces Hill-Simpson diversity estimates with a
+positive bias). While the bias in estimating the rarity of the most common
+species is relatively small (Chao and Jost 2012, 2015), because the relative
+abundance of undetected species tends to be substantial, the relative abundance
+of even the most common species is, nevertheless, typically underestimated,
+explaining why the sample Hill diversity as $\ell \rightarrow - \infty$ is still
+lower than the true value in the full assemblage.
+
+### variability
+
+The proportional variability in the diversity of a sample decreases with $\ell$
+and evenness. For larger positive values of $\ell$, there tends to be little
+variability in diversity, given sample size, especially relative to the large
+values diversity can take when $\ell>1$. 
+
+## total error... side note
+Further work remains here, but based on simulations from Roswell & Dushoff
+unpublished MeanRarity MS, the proportional error of the naïve estimator (that
+is, using sample diversity *per se* as an estimator of true diversity) grows
+rapidly with $\ell$ at lower sample sizes.. but for better-sampled, more even
+assemblages, the proportional error is greater near Hill-Shannon than near
+Hill-Simpson or Richness.
+
+
+## correlation facts
+
+Correlation isn't all there is to say about the dependence of two variables. For
+example, take $Y = 1/X$. There's actually not much we can say about the
+correlation between $X$ and $Y$. At first this was not obvious to me, as
+obviously, $Y$ always decreases in magnitude when $X$ increases in magnitude and
+vice-versa. The correlation, though, could be strong or weak, and signed either
+way, depending on the distribution of X).
+
+```{r there is no correlation with inversion}
+SS <- 100
+its <- 999
+rpois_30 <-function(x){rpois(x, 30)}
+icor <- map_dfr(1:its, function(it){
+  map_dfr(c("runif", "rnorm", "rpois_30"), function(dist){
+  x <- get(dist)(SS)
+  y <- 1/x
+  return(data.frame(icor = cor(x,y)
+                    , dist ))
+  })
+})
+icor %>% ggplot(aes(icor, color = dist)) + 
+  geom_histogram() +
+  xlim(c(-1,1))+
+  labs(title = "correlation of X with its inverse", x = "correlation") +
+  theme_classic()
+
+```
+
+It is tempting to imagine that if we know the relationship between
+abundance and diversity and the relationship between per-capita function then
+we know the relationship between diversity and total function. But when it comes
+to correlations, this isn't true. 
+
+Knowing $\rho(X, W)$ and $\rho(Y,W)$ doesn't give much information about
+$\rho(Z,W), Z = XY$. Maybe under very strict conditions about the distributions
+of $X, Y, W$ we could say more. But especially if $cov(X,Y)\neq 0$, at the level
+of correlations, saying general things about the $cor(Z,W)$ based on $cor(X,W)$
+and $cor(Y,W)$ is basically impossible.
+
+Oh, this might be a useful [link](https://stats.stackexchange.com/a/318653/171222)
+
+```{r scratchpad, echo = FALSE, include = FALSE }
 
 # saved some of the fiddling
 

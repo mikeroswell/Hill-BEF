@@ -39,7 +39,7 @@ head(bci.tree8)
 
 bci.tree8 %>% 
   group_by(treeID) %>% 
-  summarize(agbs = n_distinct(agb)) %>% 
+  summarize(agbs = n_distinct(agb), stems = n_distinct(stemID)) %>% 
   arrange(desc(agbs))
 
 bci_sum <- bci.tree8 %>% group_by(sp) %>% 
@@ -48,7 +48,21 @@ bci_sum <- bci.tree8 %>% group_by(sp) %>%
             , quadrats =n_distinct(quadrat))
 
 
+
+
+
 # View(lefcheck %>% group_by(Province) %>% 
 #   summarize(abundance = sum(Abundance)
 #             , sites = n_distinct(SiteCode)
 #   ))
+
+# read in the tree data from TEAM
+locs<- c("PA", "VB", "YA")
+sixSiteForests<-map_dfr(locs, function(loc){
+    dat <- read.csv(paste0("data/", loc, "_biomass.csv"))
+    data.frame(loc, dat)})
+
+ssf<-sixSiteForests %>% group_by(loc, Gen_sp, Year, X1ha.Plot.Number ) %>% 
+  summarize(Abundance = n(), totBiomass = sum(biomass), totCarbon = sum(carbon))
+
+ssf

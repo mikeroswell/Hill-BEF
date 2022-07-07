@@ -5,8 +5,12 @@ library(MeanRarity)
 library(furrr)
 # loop over ell
 
+cubeRt <- function(x){sign(x)*abs(x)^(1/3)}
+
 ell_vec<-seq(-10, 10, 0.2)
 ell_vec <- c(exp(seq(-12,3, 0.1)), -(exp(seq(-12,3, 0.1))))
+ell_vec <- cubeRt(c(seq(-80, 80, 0.5)
+                    , seq(-0.5, 0.5, 0.01)))
 
 # set number of "cores" to use for parallelization
 # on intel mac at least, hyperthreading is used so the maximum is double the 
@@ -16,6 +20,7 @@ nc<-7
 plan(strategy = "multiprocess", workers = nc)
 
 # this could use some work to become more general but works fine for lefcheck
+# remember that this works on groups only if they exist (e.g. site)
 sum_by_ell <- function(dat
                        , ell_vec
                        , abundance = "Abundance"
@@ -27,23 +32,29 @@ sum_by_ell <- function(dat
                        , ab = sum(eval(as.name(abundance)))
                        , EFt = sum(eval(as.name(EF)))
                        , pcf = EFt/ab
-                       , meanlat = mean(abs(SiteLat))
+                       # , meanlat = mean(abs(SiteLat))
                      )})
 }
 
 # res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
-
-
+fores <- sum_by_ell(ssf %>% group_by(loc, X1ha.Plot.Number), ell_vec = ell_vec, EF = "totCarbon")
+# fores %>% 
+#   ggplot(aes(ell, D, color = X1ha.Plot.Number)) +
+#   geom_point(size = 0.2) +
+#   theme_classic()+
+#   scale_color_viridis_d()+
+#   scale_y_log10() +
+#   xlim(c(-10, 10))
 
 res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
 
-res %>% filter(meanlat > 45) %>% 
-  ggplot(aes(ell, D, color = meanlat)) +
-  geom_point(size = 0.2) +
-  theme_classic()+
-  scale_color_viridis_c()+
-  scale_y_log10() +
-  xlim(c(-10, 2))
+# res %>% filter(meanlat > 45) %>% 
+#   ggplot(aes(ell, D, color = meanlat)) +
+#   geom_point(size = 0.2) +
+#   theme_classic()+
+#   scale_color_viridis_c()+
+#   scale_y_log10() +
+#   xlim(c(-10, 2))
 
 
 # # check my work
@@ -93,13 +104,46 @@ fit_lms <- function(sub, dataset = "lefcheck"){
                       , ab.cor.raw
                       , pcf.cor.raw
                       , ell
-                      , Latitude = dat$meanlat
+                      # , Latitude = dat$meanlat
                       , dataset = dataset
     ))
   })
 }
 
 
+forest_out <- map_dfr(unique(locs), function(loc){
+  sub <- fores %>% filter(loc== !!loc)
+  data.frame(fit_lms(sub = sub, dataset = "TEAM"), loc = loc)
+})
+
+forest_out
+
+
+pdf("figures/quickDirty")
+forest_out %>% 
+  pivot_longer(cols = ends_with(".slope")
+               , values_to = "slope"
+               , names_to ="component") %>%
+  pivot_longer(cols = contains("cor")
+               , values_to = "correlation"
+               , names_to ="correlation_component") %>%
+  filter(!grepl("spe", correlation_component )) %>% 
+  group_by(loc) %>% 
+  ggplot(aes(ell, correlation, color = loc))+
+  geom_point(size = 0.2) +
+  facet_wrap(~correlation_component) +
+  theme_classic()+
+  geom_hline(yintercept = 0, size = 0.2)  +
+  # labs(color = "mean absolute \nlatitude for \nprovince")+
+  scale_color_viridis_d() +
+  geom_vline(xintercept = 1, size = 0.2) # +
+  # scale_x_continuous(trans = scales::trans_new("cuberoot"
+  #                                              , function(x){sign(x)*(abs(x))^(1/3)}
+  #                                              , inverse = function(x){x^3}
+  #                                              , breaks = function(x){round(x,2)})
+  #                    , breaks = c(-5, -3, -1, -0.5, -0.1, 0.1,  0.5, 1,  3,5 )) +
+  # theme(axis.text.x = element_text(angle = 90))
+dev.off()
 # sim_out <-fit_lms(res2, dataset = "sim1")
 
 first_out <- map_dfr(unique(res$Province), function(Province){
@@ -112,6 +156,7 @@ first_out <- map_dfr(unique(res$Province), function(Province){
 # first_out<-read.csv("data/lefcheck_results.csv")
 
 pdf("figures/rank_correlations.pdf")
+pdf("figures/cuberoot_correlations.pdf")
 first_out %>% 
   pivot_longer(cols = ends_with(".slope")
                , values_to = "slope"
@@ -119,7 +164,7 @@ first_out %>%
   pivot_longer(cols = contains("cor")
                , values_to = "correlation"
                , names_to ="correlation_component") %>%
-  filter(grepl("spe", correlation_component )) %>% 
+  filter(!grepl("spe", correlation_component )) %>% 
   group_by(Province, Latitude) %>% 
   ggplot(aes(ell, correlation, color = Latitude))+
   geom_point(size = 0.2) +

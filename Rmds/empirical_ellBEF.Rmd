@@ -1,5 +1,5 @@
 ---
-title: "Lefcheck_data"
+title: "Empirical ell-BEF patterns"
 author: "Tina Harrison"
 date: "6/22/2022"
 output: pdf_document
@@ -15,12 +15,13 @@ library(dplyr)
 
 [Mark's!]
 
+
 # Empirical ell-BEF patterns in the Lefcheck data
 
 
 ```{r, echo=FALSE}
 # all code developed in "why.R", following Michael's code
-source("code/format_BEF.R")
+load("lefcheck_by_site")
  load("res")
 
 
@@ -178,7 +179,7 @@ sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == level
 lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
   summarise(BA.cor = cor(log(Abundance), log(Biomass/Abundance)),
             nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, bar z)"); abline(v=0)
-```
+````
 
 
 Species' abundance and total function is positively correlated within sites: few big fish are not big enough to outweigh many small fish.
@@ -191,7 +192,7 @@ sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == level
 lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
   summarise(BA.cor = cor(log(Abundance), log(Biomass)),
             nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, z)"); abline(v=0)
-```
+````
 
 The same negative correlation between total abundance (or mean per-species abundance) and mean per-capita function occurs across sites within a province. 
 
@@ -258,3 +259,116 @@ So. Total function at the $k^{th}$ site has an additive component and an interac
 $t_k = \sum_i^S (a_{i}z_{i}) + \delta \sum_{i<j}^S(p_ip_j)^\theta$
 (currently has no associated error).
 
+```{r, echo=F}
+require(magrittr, quietly = T)
+require(scales)
+require(MeanRarity)
+
+# scaled interactions
+get.pp = function(x, theta) {
+  v1 = x/sum(x)
+  pp = (v1 %o% v1) %>% .[lower.tri(., diag=F)] 
+  sum(pp^theta)
+}
+
+Ln =function(x) {ifelse(x != 0, log(x), 0)}
+
+# fixed inputs
+input = data.frame(
+sites = 50,
+s = 200,
+abund_mu = 50,
+abund_size = .2,
+fun_beta = 0.5,
+fun_shape = 1,
+delta = 1, # values between 0 and 1, controls rel importance of interactions
+theta = .1)
+
+make.ell.cor.plot = function(input, set.seed = F, seed = 12) {
+  if(set.seed == T) set.seed(seed)
+  
+# ell vec
+ell <- seq(-4, 4, by = 0.2)
+
+# draw population mean, variance from either one or two gamma distribution, depending on whether or not you want the variances to be related to the mean. THIS IS SUPER IMPORTANT. population mean will determine total site abundance, and the variance will determine diversity. 
+  site.abund_mu = rgamma(input$sites, shape = input$abund_mu) # rate = 1
+  site.abund_size = rgamma(input$sites, shape = input$abund_size) # rate = 1
+ # site.abund_size = exp(-1.186 - 1.457*poly(site.abund_mu, 2)[,1] +
+  #                       0.62625*poly(site.abund_mu,2)[,2]) 
+
+
+### generate abundance data 
+a = sapply(1:as.numeric(input$sites), function(k) {
+      rnbinom(input$s,  
+              mu = site.abund_mu[k], 
+              size = site.abund_size[k])})
+# sites in columns, species in rows
+# drop sites with less than two species
+a = a[, -which(colSums(a>0) < 2)]
+
+#matrix(a, nrow=input$s, ncol=input$sites) %>% str
+#length(a); with(input, s*sites)
+
+
+### generate per-capita function data as function of abundance
+z <- sapply(1:as.numeric(ncol(a)), function(i) {
+  y_true = exp(5 + input$fun_beta*Ln(a[,i])) # exp link glm
+  shape = input$fun_shape # larger shape values = lower error
+  rgamma(input$s, rate = shape/y_true, shape = shape)
+}) # close sapply
+
+# generate site total function with a diversity effect
+# apply(a, 2, get.pp, theta = theta) %>% hist(main="pp prod")
+got.pp = apply(a, 2, get.pp, theta = input$theta)
+f <- (1-input$delta)*rescale(colSums(a*z),c(min(colSums(a*z)),1)) + 
+      input$delta*rescale(got.pp,c(min(got.pp),1))
+
+### observation: diversity
+# Dq <- sapply(q, function(q) apply(a, 2, get.Dq, q))
+Dell <- sapply(ell, function(ell) apply(a, 2, rarity, l=ell))
+# sites in rows, q in columns
+
+ell.cor = apply(Dell, 2, function(x) {cor(log(x), log(f))})
+plot(ell, ell.cor, ylab = "ll cor(Dl,f)", type="l", lwd=2, main = "ll ell-BEF")
+   abline(v=1, lty=2); abline(h=0)
+   
+}
+```
+
+```{r}
+par(mfrow=c(1,3))
+Seed = 24
+# Seed = runif(1, 1, 100000)
+
+make.ell.cor.plot(input = data.frame(
+sites = 50,
+s = 200,
+abund_mu = 50,
+abund_size = .2,
+fun_beta = -5,
+fun_shape = 1,
+delta = 0, # values between 0 and 1, controls rel importance of interactions
+theta = .2), set.seed=T, seed = Seed)
+
+make.ell.cor.plot(input = data.frame(
+sites = 50,
+s = 200,
+abund_mu = 50,
+abund_size = .2,
+fun_beta = -5,
+fun_shape = 1,
+delta = .2, # values between 0 and 1, controls rel importance of interactions
+theta = .2), set.seed=T, seed = Seed)
+
+make.ell.cor.plot(input = data.frame(
+sites = 50,
+s = 200,
+abund_mu = 50,
+abund_size = .2,
+fun_beta = -5,
+fun_shape = 1,
+delta = 1, # values between 0 and 1, controls rel importance of interactions
+theta = .2), set.seed=T, seed = Seed)
+```
+
+These three diversity-function correlation plots are calculated from three random data sets drawn from the same parameters, except for the relative contribution of interactions to total function (delta). From left to right, the weight is 0 (completely additive), 0.5 (half additive), and 1 (only interactions). I cherry-picked these particular three draws. They are quite typical; in particular, I consistently get R2 peaks at negative ell values when interactions are dominating the abundance-function relationship. But other patterns are possible when repeating random draws from the same parameters. It shouldn't be too hard to get the distributions of peak R2 locations from many random draws for any set of input parameters, but my current code is slow/not parallelized. 
