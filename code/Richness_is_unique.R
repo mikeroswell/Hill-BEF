@@ -1,7 +1,8 @@
 # what is going on with richness and why is it different?
 # one feature of richness is that it is more discrete than other diversities
 # it is also the flip-point between emphasizing species progressively more the 
-# rarer they are vs. the common they are. 
+# rarer they are vs. the common they are.. Wait, no, let's stick to that being 
+# Shannon.
 #
 # The goal of this script is to drop a lot of the complexity of previous 
 # simulations and see what there is to see about richness. 
