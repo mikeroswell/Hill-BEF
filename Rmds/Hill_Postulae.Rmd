@@ -69,6 +69,15 @@ it is a simple tautology that evenness is positively related to diversity for
 $\ell<1$, negatively related to $\ell>1$, and *unrelated* to richness itself
 (though sampling realities make this last point particularly unlikely).
 
+To put this in terms used elsewhere in the literature (e.g. Patil and Taillie
+1982 citing Dalton 1920's principle of transfers), For all $\ell$, transferring
+abundance from a species with abundance >1 to a new species (i.e. one with 0
+abundance) increases diversity. However, when $\ell>1$, transferring abundance
+from a species with abundance >1 to another species with positive, but lesser
+abundance (this could be said more sharply) leads to a decrease in diversity,
+where, by the "principle of transfers" one might expect the opposite; this is
+guaranteed by $\ell \leq 1$.
+
 
 ## Variable abundances
 
@@ -149,6 +158,36 @@ the transition from negative to positive $\ell$. We know to expect change in the
 vicinity of $\ell = 1$, but more details, such as the $\ell$ values of
 inflection points and peaks, or the cause of very smooth vs. more complex
 shapes, remain a bit mysterious.
+
+## Notes on $\ell >1$
+
+It has been traditional within the diversity literature to ignore diversities
+with $\ell >1$. This is a list of the reasons cited for this, along with some
+notes.
+
+Patil and Taillie 1982 J. Am. Stat. Ass. state in section 4 that diversity
+measures should obey a "principle of transfers" (Dalton 1920 The Economic
+Journal); that is, transferring abundance from more to less abundant species
+(where less abundant species could have abundance ≥0) should not decrease
+diversity. This obviously does not hold for $\ell >1$. This seems legitimate;
+q for us why it is useful to consider Hill numbers when this property doesn't hold.
+
+Leinster and Cobbold 2012 Ecology define $0^0$ as 1 and then note that $0^q$ is
+not defined for $q<0$. This seems like a trivial concern but maybe we need to
+worry about 0-abundance species for lots of diversity generalizations that
+aren't just about a single assemblage.
+
+Chao et al. 2014 Ecological Monographs note that for $q<0 = |ell>1$, Hill 
+diversity estimation is wickedly difficult b/c of the sampling properties of 
+rarity. While the idea that rare species pose a difficulty for estimation is 
+obviously valid and one of my favorite, it seems strange to impose a cutoff at 
+richness (why not something more Hill-Shannon-like, c.f. Haegeman et al. 2013?). 
+They also cite Ricotta 2003 as claiming that if two communities had the same 
+relative abundance, the one with greater absolute diversity should be considered 
+more diverse. The Ricotta paper suggests focusing on "total information" rather
+than average information by multiplying a scaled total abundance measure by a 
+scaled entropy. It doesn't look like people loved the idea as this paper has 
+seldom been cited. 
 
 ## Interpretations
 
