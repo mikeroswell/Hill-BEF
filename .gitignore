@@ -41,8 +41,12 @@ vignettes/*.pdf
 # html files more generally
 *.html
 
-# all .pdfs!
+# all .pdfs and .docx files
 *.pdf
+*.docx
+
+# all figures
+figures/*
 
 # oversized files
 
