@@ -102,4 +102,17 @@ sixSiteForests<-map_dfr(locs, function(loc){
 ssf<-sixSiteForests %>% group_by(loc, Gen_sp, Year, X1ha.Plot.Number ) %>% 
   summarize(Abundance = n(), totBiomass = sum(biomass), totCarbon = sum(carbon))
 
-ssf
+# look at CV abundance
+ssf %>% group_by(loc) %>% summarize(sd(Abundance)/mean(Abundance))
+
+# and pcf relationships
+# ssf %>% group_by(X1ha.Plot.Number) %>% 
+ssf %>% 
+  ggplot(aes(Abundance, totBiomass/Abundance, color = loc)) +
+  geom_smooth()+
+  facet_wrap(~loc)+
+  theme_classic() +
+  scale_x_log10()+
+  scale_y_log10()
+
+               

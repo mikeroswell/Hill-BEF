@@ -189,6 +189,14 @@ than average information by multiplying a scaled total abundance measure by a
 scaled entropy. It doesn't look like people loved the idea as this paper has 
 seldom been cited. 
 
+
+## math reminder: fractional exponents
+$x^{ab}=(x^a)^b$
+This means that 
+$x^\frac{p,q}$ implies a number $a$ such that $a^q = x^p$
+So $x^1.5$ is like saying what is $a$ s.t. $a^2 = x^3$ i.e. $\sqrt{x^3}$
+This doesn't seem like a crazy number to think about.
+
 ## Interpretations
 
 When $\ell \rightarrow \infty$, $D$ is (usually) driven almost entirely by

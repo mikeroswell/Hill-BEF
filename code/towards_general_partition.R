@@ -46,6 +46,12 @@ fores <- sum_by_ell(ssf %>% group_by(loc, X1ha.Plot.Number), ell_vec = ell_vec, 
 #   scale_y_log10() +
 #   xlim(c(-10, 10))
 
+fores %>% filter(ell == -10) %>% ggplot(aes(ab, pcf, color = loc)) + geom_point()+theme_classic() + scale_x_log10()+scale_y_log10()
+fores %>% filter(ell == -10) %>% ggplot(aes(ab, D, color = loc)) + geom_point()+theme_classic()+ scale_x_log10()+scale_y_log10()+facet_wrap(~loc, scales = "free")
+
+ssf %>% group_by()
+
+
 res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
 
 # res %>% filter(meanlat > 45) %>% 
@@ -78,13 +84,13 @@ fit_lms <- function(sub, dataset = "lefcheck"){
     EF.slope = pcf.slope + ab.slope
     EF.cor = cor(Ln(dat$EFt)
                  , Ln(dat$D))
-    ab.cor.part = ab.slope* sd(Ln(dat$D))/(sd(
-      mean(Ln(dat$pcf)) * Ln(dat$ab)
-    ))
-    pcf.cor.part = pcf.slope * sd(Ln(dat$D))/(sd(
-      mean(Ln(dat$ab)) * Ln(dat$pcf)
-    ))
-    
+    # ab.cor.part = ab.slope* sd(Ln(dat$D))/(sd(
+    #   mean(Ln(dat$pcf)) * Ln(dat$ab)
+    # ))
+    # pcf.cor.part = pcf.slope * sd(Ln(dat$D))/(sd(
+    #   mean(Ln(dat$ab)) * Ln(dat$pcf)
+    # ))
+    # 
     ab.cor.raw = cor(Ln(dat$ab), Ln(dat$D))
     pcf.cor.raw = cor(Ln(dat$D), Ln(dat$pcf))
     EF.spe = cor(Ln(dat$EFt)
@@ -96,8 +102,8 @@ fit_lms <- function(sub, dataset = "lefcheck"){
                       , ab.slope
                       , EF.slope
                       , EF.cor
-                      , ab.cor.part
-                      , pcf.cor.part
+                      # , ab.cor.part
+                      # , pcf.cor.part
                       , EF.cor.spe = EF.spe
                       , ab.cor.spe = ab.spe
                       , pcf.cor.spe = pcf.spe
@@ -151,6 +157,72 @@ first_out <- map_dfr(unique(res$Province), function(Province){
   data.frame(fit_lms(sub = sub), Province = Province)
   })
 
+# get highest correlations
+
+highells<-res %>% 
+  mutate(highell = Province %in% 
+           c(first_out %>% 
+               group_by(Province) %>% 
+               filter(EF.cor == max(EF.cor)) %>% 
+               ungroup() %>% 
+               filter(ell>2) %>% 
+               pull(Province))
+  )
+
+
+CVab<- highells %>% 
+  filter(ell ==1) %>% 
+  group_by(highell, Province) %>% 
+  summarize(cvAbund = sd(ab)/mean(ab)
+           , cvRich = sd(D)/mean(D) 
+           , cvPCF = sd(pcf)/mean(pcf)) 
+
+
+
+CVab %>% ggplot(aes(cvRich, cvPCF, color = highell))+
+  # geom_smooth() +
+  geom_point()+
+  theme_classic()
+
+
+
+pdf("figures/highell_from_richness_and_abundance_variation.pdf")
+
+CVab %>% ggplot(aes(cvAbund, cvRich, color = highell))+
+  # geom_smooth() +
+  geom_point()+
+  theme_classic()
+
+dev.off()
+
+pdf("figures/highell_bc_high_cv_abund.pdf")
+
+CVab %>% ggplot(aes( highell, cvAbund))+
+  geom_boxplot()+
+  geom_beeswarm(size = 2)+
+  theme_classic() +
+  labs(x = "high ell most predictive")
+
+dev.off()
+
+highells_raw <- lefcheck_by_site %>% 
+  mutate(highell = Province %in% 
+           c(first_out %>% 
+               group_by(Province) %>% 
+               filter(EF.cor == max(EF.cor)) %>% 
+               ungroup() %>% 
+               filter(ell>2) %>% 
+               pull(Province)))
+
+pdf("figures/look_for_humps.pdf")
+highells_raw %>% group_by(SiteCode) %>% 
+  ggplot(aes(log(Abundance), log(Biomass/Abundance), color =highell, shape = SiteCode)) +
+  geom_smooth()+
+  facet_wrap(~Province)+
+  theme_classic()+
+  theme(legend.position = "none") 
+    
+dev.off()
 # for now save data so I can restart computer
 # write.csv(first_out, "data/lefcheck_results.csv", row.names = F)
 # first_out<-read.csv("data/lefcheck_results.csv")
