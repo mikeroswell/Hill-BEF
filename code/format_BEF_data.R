@@ -1,18 +1,62 @@
 # format datasets
 library(tidyverse)
-# the bee data consist of a bunch of lists
+
+
+# Bee data from Genung et al. 2022 Realistic Loss Order:
+# Visitation and estimated pollen deposition from Bees on 3 plant species at 
+# 25 sites set in a grid in Central New Jersey Sampled in 3 years
+# Although each plant species was sampled in the same 25 sites, we treat the 
+# samples from a given plant species as a distinct "metacommunity", as 
+# pollination of *that plant* is the ecosystem function in this context. 
+# For source data we used .rds files provided by M Genung. 
 
 
 # format the bee data
 a.list = readRDS("data/a.list.rds")
 z.list = readRDS("data/z.list.rds")
-a.data <- a.list %>% lapply(function(x) {rownames(x) = x$X; x[,-1] %>% 
-  as.data.frame.matrix %>% as.matrix}) 
+# name the plants
+#################################################
+### NEED TO CHECK THE ORDER, THIS IS MADE UP!  ##
+##################################################
+pnames <- c( "Polemonium_reptans","Phacelia_tanacetifolia", "Monarda_fistulosa")
+names(a.list) <- pnames
+names(z.list) <- pnames
+
+a.list
+a.data <- a.list %>% 
+  lapply(function(x) {rownames(x) = x$X; x[,-1] %>% 
+  as.data.frame.matrix %>% 
+    as.matrix}) 
 z.t.data <- z.list %>% lapply(function(x) {rownames(x) = x$X; x[,-1] %>% 
   as.data.frame.matrix %>% as.matrix}) 
 z.data = sapply(1:length(z.t.data),
                 function(se) {z = z.t.data[[se]]/a.data[[se]]
                 z[is.nan(z)] = 0; z})
+
+z.data
+a.data
+names(z.data) <- pnames
+
+fix_bee <- function(x, value_name){pivot_longer(data.frame(x) %>% 
+                                      rownames_to_column("bee_species")
+                                    , cols = 2:last_col()
+                                    , names_to = c("site", "year")
+                                    , names_sep = "\\."
+                                    , values_to = value_name) 
+  }
+bee_abund <- purrr::map_dfr(a.data, function(x){fix_bee(x, value_name = "visit_rate")}, .id = "plant")
+bee_pcf <- purrr::map_dfr(z.data, function(x){fix_bee(x, value_name = "pollen_dep")}, .id = "plant")
+
+bees_1819 <- left_join(bee_abund, bee_pcf) %>% 
+  group_by(plant, bee_species, site) %>% 
+  summarize(visit_rate = mean(visit_rate), pollen_dep = mean(pollen_dep)) %>% 
+  ungroup()
+
+bees_1819
+# Fish data from Lefcheck et al. 2021 Nature Communications "Species Richness
+# and Identity..."
+# downloaded with script "code/Download_BEF_data.R"
+# source("code/Download_BEF_data.R")
 
 # Might go a bit flatter for the lefcheck data
 lefcheck<-read.csv("data/lefcheck.csv")
@@ -33,6 +77,8 @@ lefcheck_by_site<-lefcheck %>%
             , Abundance = sum(Abundance)
             , depths = n_distinct(Depth)
             , survs = n_distinct(SurveyID))
+
+
 # look at bci
 load("data/bci_tree8.rdata")
 head(bci.tree8)
@@ -100,19 +146,23 @@ sixSiteForests<-map_dfr(locs, function(loc){
     data.frame(loc, dat)})
 
 ssf<-sixSiteForests %>% group_by(loc, Gen_sp, Year, X1ha.Plot.Number ) %>% 
-  summarize(Abundance = n(), totBiomass = sum(biomass), totCarbon = sum(carbon))
+  summarize(Abundance = n(), totBiomass = sum(biomass), totCarbon = sum(carbon)) %>% filter(Year == 2012)
 
 # look at CV abundance
 ssf %>% group_by(loc) %>% summarize(sd(Abundance)/mean(Abundance))
 
 # and pcf relationships
-# ssf %>% group_by(X1ha.Plot.Number) %>% 
+# ssf 
+
+pdf("figures/pcf_in_TEAMS.pdf")
 ssf %>% 
-  ggplot(aes(Abundance, totBiomass/Abundance, color = loc)) +
-  geom_smooth()+
+  mutate(siteCode = str_replace(.data$X1ha.Plot.Number, "VG-.*-", "")) %>% 
+  ggplot(aes(Abundance, totBiomass/Abundance, color = siteCode)) +
+  geom_smooth(se = FALSE)+
+  geom_point(alpha =0.5)+
   facet_wrap(~loc)+
   theme_classic() +
   scale_x_log10()+
   scale_y_log10()
-
+dev.off()
                
