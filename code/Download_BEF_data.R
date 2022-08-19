@@ -2,11 +2,14 @@
 library(tidyverse)
 
 # fish data from Lefcheck et al 2021
-download.file("https://smithsonian.figshare.com/ndownloader/files/31149808", destfile = "data/lefcheck.xlsx")
+download.file("https://smithsonian.figshare.com/ndownloader/files/31149808"
+              , destfile = "data/lefcheck.xlsx")
 lefcheck<-readxl::read_excel("data/lefcheck.xlsx", sheet = 1)
 
 write.csv(lefcheck, "data/lefcheck.csv", row.names =F)
 file.remove("data/lefcheck.xlsx")
+
+# not downloading Genung et al. 2022 data from dryad b/c those data didn't have years combined. 
 # 
 # # explore data 
 # names(lefcheck)
