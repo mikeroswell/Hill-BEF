@@ -52,7 +52,7 @@ bees_1819 <- left_join(bee_abund, bee_pcf) %>%
   summarize(visit_rate = mean(visit_rate), pollen_dep = mean(pollen_dep)) %>% 
   ungroup()
 
-bees_1819
+write.csv(bees_1819, "data/bees_wrong.csv", row.names = FALSE)
 # Fish data from Lefcheck et al. 2021 Nature Communications "Species Richness
 # and Identity..."
 # downloaded with script "code/Download_BEF_data.R"
