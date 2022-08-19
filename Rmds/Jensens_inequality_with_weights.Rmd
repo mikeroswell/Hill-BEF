@@ -1,0 +1,56 @@
+---
+title: "Weighting the means"
+author: "Michael Roswell"
+date: "08/18/2022"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+For the bee data, ideally we combine sampling years before computing visit rates.
+
+Imagine you have a site watched for 3 minutes in year one  and 9 in year two. In
+this case it is inappropriate to simply average the visit rates across years
+without weighting.
+
+Let's say you saw 7 of a focal species in year one and 6 in year two. 
+
+You'd erroneously estimate a visitation rate of 1.5 bees per minute if you
+computed the yearly rate and then averaged.
+
+```{r visit rate wrong}
+dat <- data.frame( year = c(1, 2)
+                   , minutes = c(3, 9)
+                   , visits = c(7, 6))
+
+# the wrong way
+
+annual <- dat %>% 
+  group_by(year) %>% 
+  mutate(visit_rate = visits/minutes)
+
+annual
+
+mean(annual$visit_rate)
+
+```
+
+Because we spent 3 times as long looking in year two, we should give that one 3x
+the weight.
+This would give us a much smaller number, since visitation was slower in yr 2. 
+
+```{r with weights}
+annual %>% 
+  ungroup() %>% 
+  summarize(total_visit_rate = sum(visits)/sum(minutes))
+```
+
+Of course we want the lower number... our goal of normalizing per-minute was to
+make all the abundance measures comparable between sites despite uneven sampling. 
+We want to do the same thing between years. 
