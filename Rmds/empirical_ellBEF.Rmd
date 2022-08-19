@@ -2,11 +2,14 @@
 title: "Empirical ell-BEF patterns"
 author: "Tina Harrison"
 date: "6/22/2022"
-output: pdf_document
+output:
+  word_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = FALSE)
 library(magrittr)
 library(dplyr)
 ```
@@ -56,7 +59,7 @@ lapply(1:5, function(x) {
 })
 ```
 
-Most of these ell-BEF curves have a similar form. Correlations between low ell diversities and EF are weak and have variable, often negative slope. Correlations between high ell diversities and EF, on the other hand, are always positive and often strong. Although we calculated diversities up to ell = (-10, 10), site diversity profiles only appreciably change in a narrow ell = (-2, 2) range. At intermediate ell values beween -2 (inverse Simpson) and 2, site diversity profiles and therefore cross-site BEF correlations change rapidly. The typical rapid rise (group 1) may be complicated by a minimum correlation in the intermediate ell range (group 2), a maximum correlation at intermediate ell (group 5), or both (group 4). A few metacommunities have atypical decreases in correlation as ell increases (group 3).
+Most of these ell-BEF curves have a similar form. Correlations between low ell diversities and EF are weak and have variable, often negative slope. Correlations between high ell diversities and EF, on the other hand, are always positive and often strong. Although we calculated diversities up to ell = (-10, 10), site diversity profiles only appreciably change in a narrow ell = (-2, 2) range. At intermediate ell values between -1 (inverse Simpson) and 2, site diversity profiles and therefore cross-site BEF correlations change rapidly. The typical rapid rise (group 1) may be complicated by a minimum correlation in the intermediate ell range (group 2), a maximum correlation at intermediate ell (group 5), or both (group 4). A few metacommunities have atypical decreases in correlation as ell increases (group 3).
  
 Taking these correlation profiles at face value, at what ell value is diversity most predictive of ecosystem function? 
  
@@ -179,7 +182,7 @@ sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == level
 lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
   summarise(BA.cor = cor(log(Abundance), log(Biomass/Abundance)),
             nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, bar z)"); abline(v=0)
-````
+```
 
 
 Species' abundance and total function is positively correlated within sites: few big fish are not big enough to outweigh many small fish.
@@ -192,7 +195,7 @@ sapply(c(103, 711), function(k) {with(subset(lefcheck_by_site, SiteCode == level
 lefcheck_by_site %>% group_by(Province, SiteCode) %>% 
   summarise(BA.cor = cor(log(Abundance), log(Biomass)),
             nrow = n()) %>% subset(nrow>3) %$% BA.cor %>% hist(main = "within-site cor(A, z)"); abline(v=0)
-````
+```
 
 The same negative correlation between total abundance (or mean per-species abundance) and mean per-capita function occurs across sites within a province. 
 
