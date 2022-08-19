@@ -117,6 +117,34 @@ fit_lms <- function(sub, dataset = "lefcheck"){
 }
 
 
+# exploratory figure to understand pcf and ab correlations
+pdf("figures/pcf_vs_ab_TEAM.pdf")
+fores %>% filter(ell ==1) %>% 
+  ggplot(aes(ab, pcf))+
+  geom_point() +
+  facet_wrap(~loc, scales = "free"
+           ,  nrow =3) +
+  theme_classic()
+dev.off()
+
+fores %>% ggplot(aes(D, pcf, color = ell))+
+  geom_point()+
+  facet_grid(~loc, scales = "free") +
+  theme_classic() +
+  scale_color_viridis_c(option = "plasma")
+
+fores %>% ggplot(aes(D, ab, color = ell))+
+  geom_point()+
+  facet_grid(~loc, scales = "free") +
+  theme_classic() +
+  scale_color_viridis_c(option = "plasma")
+
+fores %>% ggplot(aes(pcf, ab))+
+  geom_point()+
+  facet_grid(~loc, scales = "free") +
+  theme_classic() +
+  scale_color_viridis_c(option = "plasma")
+
 forest_out <- map_dfr(unique(locs), function(loc){
   sub <- fores %>% filter(loc== !!loc)
   data.frame(fit_lms(sub = sub, dataset = "TEAM"), loc = loc)
