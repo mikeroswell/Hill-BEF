@@ -27,7 +27,7 @@ fix_bee <- function(x, value_name){pivot_longer(data.frame(x)
 
 pnames <- c( "Polemonium_reptans","Phacelia_tanacetifolia", "Monarda_fistulosa")
 
-bee_dat <- readRDS("data/bee_data.rds")
+bee_data <- readRDS("data/bee_data.rds")
 
 # filter to just the sites of interest 
 bee_abundances <- map_dfr(1:3, function(x){
@@ -113,6 +113,7 @@ lefcheck_by_site %>%
   summarize(n_distinct(Province))
 
 reef_fish <- lefcheck_by_site %>% 
+  ungroup() %>% 
   mutate(temperate = abs(SiteLat) > 23.44 ) %>% 
   mutate(syst = paste(Province, temperate, sep = "_")
          , study = "lefcheck") %>% 
@@ -124,15 +125,18 @@ reef_fish <- lefcheck_by_site %>%
          , ef = Biomass)
 
 
-write.csv(reef_fish, "fish_for_analysis.csv")
+write.csv(reef_fish, "data/fish_for_analysis.csv")
+
+
 # look at bci
-load("data/bci_tree8.rdata")
+load("data/bci.rdata")
 head(bci.tree8)
 
-bci.tree8 %>% 
-  group_by(treeID) %>% 
-  summarize(agbs = n_distinct(agb), stems = n_distinct(stemID)) %>% 
-  arrange(desc(agbs))
+# this is a bit slow here and unecessary 
+# bci.tree8 %>% 
+#   group_by(treeID) %>% 
+#   summarize(agbs = n_distinct(agb), stems = n_distinct(stemID)) %>% 
+#   arrange(desc(agbs))
 
 bci_sum <- bci.tree8 %>% group_by(sp) %>% 
   summarize(Biomass = sum(agb)
@@ -164,20 +168,25 @@ for(i in 1:(row.divs-1)){ # x axis
 }
 
 # checking the number of rows in each of the 50 new  1-ha plots, looks reasonable
-plot(unlist(lapply(bci.50, nrow)), ylim=c(0,12000))
+# plot(unlist(lapply(bci.50, nrow)), ylim=c(0,12000))
 
 # checking what the r-binded df looks like, looks good
 bci_50subplots = do.call(rbind, bci.50)
-str(bci_50subplots)
-
-# but need to make sure all the unique subplots showed up
-unique(bci_50subplots$subplot)
+# str(bci_50subplots)
+# 
+# # but need to make sure all the unique subplots showed up
+# unique(bci_50subplots$subplot)
 
 # looks good
 
+bci_carbon <- bci_50subplots %>% 
+  group_by(site = as.character(subplot), gen_sp = sp) %>% 
+  summarize( abund = n(), ef = 0.5*sum(agb) ) %>% # carbon is 50% woody biomass
+  mutate(syst = "BCI_sub_agc", study = "condit" )
 
 
-
+bci_carbon
+write.csv(bci_carbon, "data/bci_for_analysis",  row.names = FALSE)
 
 
 # View(lefcheck %>% group_by(Province) %>% 
@@ -191,24 +200,45 @@ sixSiteForests<-map_dfr(locs, function(loc){
     dat <- read.csv(paste0("data/", loc, "_biomass.csv"))
     data.frame(loc, dat)})
 
-ssf<-sixSiteForests %>% group_by(loc, Gen_sp, Year, X1ha.Plot.Number ) %>% 
-  summarize(Abundance = n(), totBiomass = sum(biomass), totCarbon = sum(carbon)) %>% filter(Year == 2012)
+TEAM_Forests<-sixSiteForests %>% 
+  filter(Year == 2012) %>% 
+  group_by(syst = loc
+           , gen_sp = Gen_sp
+           , site = X1ha.Plot.Number ) %>% 
+  summarize(abund = n(), ef = sum(carbon)) %>% 
+  mutate(study = "TEAM")
 
-# look at CV abundance
-ssf %>% group_by(loc) %>% summarize(sd(Abundance)/mean(Abundance))
+
+write.csv(TEAM_Forests, "data/team_forests_for_analysis.csv", row.names = FALSE)
+
+
+bef_data <- bind_rows(
+  TEAM_Forests
+  , bci_carbon
+  , reef_fish
+  , bee_fixed
+)
+
+summary(bef_data)
+head(bef_data)
+
+write.csv(bef_data, "data/bef_data_for_analyses.csv", row.names = FALSE)
+
+# # look at CV abundance
+# ssf %>% group_by(loc) %>% summarize(sd(Abundance)/mean(Abundance))
 
 # and pcf relationships
 # ssf 
-
-pdf("figures/pcf_in_TEAMS.pdf")
-ssf %>% 
-  mutate(siteCode = str_replace(.data$X1ha.Plot.Number, "VG-.*-", "")) %>% 
-  ggplot(aes(Abundance, totBiomass/Abundance, color = siteCode)) +
-  geom_smooth(se = FALSE)+
-  geom_point(alpha =0.5)+
-  facet_wrap(~loc)+
-  theme_classic() +
-  scale_x_log10()+
-  scale_y_log10()
-dev.off()
-               
+# 
+# pdf("figures/pcf_in_TEAMS.pdf")
+# ssf %>% 
+#   mutate(siteCode = str_replace(.data$X1ha.Plot.Number, "VG-.*-", "")) %>% 
+#   ggplot(aes(Abundance, totBiomass/Abundance, color = siteCode)) +
+#   geom_smooth(se = FALSE)+
+#   geom_point(alpha =0.5)+
+#   facet_wrap(~loc)+
+#   theme_classic() +
+#   scale_x_log10()+
+#   scale_y_log10()
+# dev.off()
+#                
