@@ -17,36 +17,68 @@ library(tidyverse)
 # MG provided data source files. Raw data housed in Winfree Lab database at
 # Rutgers U.
 
-fix_bee <- function(x, value_name){pivot_longer(data.frame(x) %>% 
-                                                  rename(bee_species = X)
-                                                , cols = 2:last_col()
-                                                , names_to = "site"
+fix_bee <- function(x, value_name){pivot_longer(data.frame(x) 
+                                                , cols = 3:last_col()
+                                                , names_to = c("site", "year")
+                                                , names_sep = "\\."
                                                 , values_to = value_name) 
 }
 
-beef <- list.files(path = "data", pattern = ".*_Apr22\\.csv")[1]
+
 pnames <- c( "Polemonium_reptans","Phacelia_tanacetifolia", "Monarda_fistulosa")
 
-bee_dup <- map_dfr(list.files(path = "data", pattern = ".*_Apr22\\.csv"), function(beef){
-  dat <- read.csv(paste0("data/",beef))
-  value_name <- gsub( "_.*", "", beef)
-  plant_code <- gsub("(^.*_output_)(.*)(_Ap.*$)", "\\2", beef) 
-  plant_ID <- pnames[gsub("(^[a-z]{1})([a-z]*_)([a-z]{1})(.*$)"
-                          , "\\1\\3"
-                          , tolower(pnames))==plant_code]
-  return(data.frame(fix_bee(dat, value_name), plant_ID))
+bee_dat <- readRDS("data/bee_data.rds")
+
+# filter to just the sites of interest 
+bee_abundances <- map_dfr(1:3, function(x){
+  df <- data.frame(plantID = pnames[[x]], bee_data[[x]] %>% 
+                     rownames_to_column("bee_gs"))
+  return(df)
+  })
+
+bee_functions <- map_dfr(10:12, function(x){
+  df <- data.frame(plantID = pnames[[x-9]], bee_data[[x]]%>% 
+                     rownames_to_column("bee_gs"))
+  return(df)
 })
 
 
-bee_dat <- left_join(bee_dup %>% filter(is.na(func)) %>% select(-func)
-                     , bee_dup %>% filter(is.na(abund)) %>% select(-abund)
-                     , by = c("bee_species", "site", "plant_ID") ) %>% 
-  select(plant_ID, site, bee_species, abund, ef = func) %>% 
-  arrange(plant_ID, site, bee_species)
+bee_abundances
+bee_functions
 
-write.csv(bee_dat, "data/bef-scale_bees_taxonomy_issues.csv", row.names = FALSE)
 
-unique(bee_dat$bee_species) %>% sort
+bee_ab <- fix_bee(bee_abundances, "abund")
+bee_ef <- fix_bee(bee_functions, "ef")
+
+bee_complete <- left_join(bee_ab, bee_ef, by = c("plantID", "site", "year", "bee_gs"))
+
+bee_complete %>% group_by(year, plantID) %>% summarize(sum(abund>0))
+# 2017 looks a bit better
+
+bee_2017 <- bee_complete %>% filter(year == 17)
+
+# check out bee names
+
+unique(bee_2017$bee_gs) %>% sort
+# sort out some taxonomic issues (overall, pretty minor)
+
+# make a couple species complexes
+
+bee_2017$bee_gs[grepl("Hylaeus_aff", bee_2017$bee_gs)|grepl("Hylaeus_mod", bee_2017$bee_gs)] <- "Hylaeus_affinis_modestus"
+bee_2017$bee_gs[grepl("hitch", bee_2017$bee_gs)|grepl("wee", bee_2017$bee_gs)] <- "Lasioglossum_hitchensi_weemsi"
+# first, drop weird bombus 
+bee_2017 <- bee_2017 %>% filter(!grepl("seeTN", bee_2017$bee_gs) & !grepl("Bombyl", bee_2017$bee_gs))
+# need to group the complexes data now
+bee_fixed <- bee_2017 %>% 
+  group_by(plantID, site, bee_gs) %>% 
+  summarize(abund = sum(abund), ef = sum(ef)) %>% 
+  filter(abund > 0) # keeping zeroes is unhelpful 
+
+# head(bee_fixed)
+
+# save the flat bee data to file 
+write.csv(bee_fixed, "data/bees_for_analysis.csv", row.names = FALSE)
+
 
 # Fish data from Lefcheck et al. 2021 Nature Communications "Species Richness
 # and Identity..."
