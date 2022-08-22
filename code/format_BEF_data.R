@@ -70,7 +70,8 @@ bee_2017$bee_gs[grepl("hitch", bee_2017$bee_gs)|grepl("wee", bee_2017$bee_gs)] <
 bee_2017 <- bee_2017 %>% filter(!grepl("seeTN", bee_2017$bee_gs) & !grepl("Bombyl", bee_2017$bee_gs))
 # need to group the complexes data now
 bee_fixed <- bee_2017 %>% 
-  group_by(plantID, site, bee_gs) %>% 
+  group_by(syst = plantID, site, gen_sp = bee_gs) %>% 
+  mutate(study = "genung") %>% 
   summarize(abund = sum(abund), ef = sum(ef)) %>% 
   filter(abund > 0) # keeping zeroes is unhelpful 
 
@@ -105,7 +106,25 @@ lefcheck_by_site<-lefcheck %>%
             , depths = n_distinct(Depth)
             , survs = n_distinct(SurveyID))
 
+lefcheck_by_site %>% group_by(Realm) %>% summarize(n_distinct(Province))
+lefcheck_by_site %>% 
+  mutate(temperate = abs(SiteLat) > 23.44 ) %>% 
+  group_by(temperate) %>% 
+  summarize(n_distinct(Province))
 
+reef_fish <- lefcheck_by_site %>% 
+  mutate(temperate = abs(SiteLat) > 23.44 ) %>% 
+  mutate(syst = paste(Province, temperate, sep = "_")
+         , study = "lefcheck") %>% 
+  select(study
+         , syst
+         , site = SiteCode
+         , gen_sp = SPECIES_NAME
+         , abund = Abundance
+         , ef = Biomass)
+
+
+write.csv(reef_fish, "fish_for_analysis.csv")
 # look at bci
 load("data/bci_tree8.rdata")
 head(bci.tree8)
