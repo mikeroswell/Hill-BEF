@@ -141,11 +141,38 @@ toc()
 
 # just over a minute on MBP
 
-pdf("figures/EF_cor_partions.pdf", width = 6.5, height = 4.5)
-# challenge of finding a diverging palette that allows discrimination near middle
+
+# D-EF Correlation graph
+
+pdf("figures/D-EF_cor.pdf", width = 6.5, height = 2.5)
 bef_cors %>% 
   group_by(syst) %>% 
   left_join(clr_tab) %>% 
+  mutate(study_plus = factor(study_plus
+                             , levels = c("tree_carbon"
+                                          , "bee_pollination"
+                                          , "reef_fish_temperate"
+                                          , "reef_fish_tropical"))) %>% 
+  ggplot(aes(ell, EF.cor, color = clr))+
+  # get ref lines on first so they don't overlap anything
+  geom_hline(yintercept = 0, size = 0.2)  +
+  geom_vline(xintercept = 1, size = 0.2) +
+  geom_line(size = 0.7) +
+  facet_grid(~study_plus) +
+  theme_classic()+
+  scale_color_viridis_d(option = "plasma") + 
+  theme(legend.position = "none"
+         , panel.spacing = unit(1, "lines"))+ 
+  xlim(-5,5) +
+  labs(y = "correlation between \nlog(D) and log(EF)")
+dev.off()
+
+# D-ab and D-pcf graph
+pdf("figures/EF_cor_partions.pdf", width = 6.5, height = 4.5) 
+# note that the height is klugey, should be fixed. 
+
+bef_cors %>% 
+  group_by(syst) %>% 
   mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
   pivot_longer(cols = ends_with(".slope")
                , values_to = "slope"
@@ -174,30 +201,38 @@ bef_cors %>%
 dev.off()
 
 
-# D-EF Correlation graph
+# just diversity
+# D-ab and D-pcf graph
+pdf("figures/diversity_profiles.pdf", width = 4, height = 4) 
 
-pdf("figures/D-EF_cor.pdf", width = 6.5, height = 2.5)
-bef_cors %>% 
-  group_by(syst) %>% 
-  left_join(clr_tab) %>% 
-  mutate(study_plus = factor(study_plus
+bef_by_ell %>% 
+  group_by(study_plus) %>% 
+  mutate(colcol = c(2:4, (1:3)+0.2, (1:3)+0.4)[dense_rank(as.numeric(as.factor(syst)))]) %>% 
+  group_by(site, syst, colcol) %>% 
+  mutate(ss = paste(site, syst)
+         , study_plus = factor(study_plus
                              , levels = c("tree_carbon"
                                           , "bee_pollination"
                                           , "reef_fish_temperate"
-                                          , "reef_fish_tropical"))) %>% 
-  ggplot(aes(ell, EF.cor, color = clr))+
-  # get ref lines on first so they don't overlap anything
+                                          , "reef_fish_tropical"))
+         ) %>% 
+  ggplot(aes(ell, D ))+
   geom_hline(yintercept = 0, size = 0.2)  +
   geom_vline(xintercept = 1, size = 0.2) +
-  geom_line(size = 0.7) +
-  facet_grid(~study_plus) +
+  geom_line(size = 0.2, aes(group =ss, color = colcol)) +
+  facet_wrap(~study_plus, scales = "free") +
   theme_classic()+
-  scale_color_viridis_d(option = "plasma") + 
-  theme(legend.position = "none"
+  scale_color_viridis_c(option = "viridis") + 
+  geom_vline(xintercept = 1, size = 0.2) +
+  theme( legend.position = "none"
          , panel.spacing = unit(1, "lines"))+ 
   xlim(-5,5) +
-  labs(y = "correlation between \nlog(D) and log(EF)")
+  scale_y_log10()
 dev.off()
+
+
+
+
 
 pdf("figures/EF_slope_starting_place.pdf")
 # challenge of finding a diverging palette that allows discrimination near middle
