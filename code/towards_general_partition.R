@@ -146,7 +146,7 @@ bef_cors %>%
   filter(!grepl("spe", correlation_component )) %>% 
   ggplot(aes(ell, correlation, color = best_ell))+
   geom_point(size = 0.2) +
-  facet_grid(study_plus~correlation_component) +
+  facet_grid(study_plus~factor(correlation_component, levels = c("EF.cor", "ab.cor", "pcf.cor"))) +
   theme_classic()+
   geom_hline(yintercept = 0, size = 0.2)  +
   # labs(color = "mean absolute \nlatitude for \nprovince")+
