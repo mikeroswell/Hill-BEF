@@ -19,6 +19,8 @@ bef_data <- bef_data %>% filter(abund >0)
 # vector of Hill diversity scaling factors to consider
 ell_vec<-seq(-10, 10, 0.05)
 
+
+
 # tempting to look at greater density of points near ell = 0
 # ell_vec <- c(exp(seq(-12,3, 0.1)), -(exp(seq(-12,3, 0.1))))
 # ell_vec <- cubeRt(c(seq(-80, 80, 0.5)
@@ -67,7 +69,7 @@ sum_by_ell <- function(dat
 # times the crunching, if you want
 tictoc::tic()
 future::plan(strategy = "multiprocess", workers = nc)
-bef_by_ell <- sum_by_ell(bef_data %>% group_by(site, syst, study), ell_vec = ell_vec )
+bef_by_ell <- sum_by_ell(bef_data %>% group_by(site, syst, study, study_plus), ell_vec = ell_vec )
 
 tictoc::toc()
 # 1 minute on MBP
@@ -90,8 +92,8 @@ fit_lms <- function(sub){
     EF.slope = pcf.slope + ab.slope
     EF.cor = cor(Ln(dat$EFt)
                  , Ln(dat$D))
-    ab.cor.raw = cor(Ln(dat$ab), Ln(dat$D))
-    pcf.cor.raw = cor(Ln(dat$D), Ln(dat$pcf))
+    ab.cor = cor(Ln(dat$ab), Ln(dat$D))
+    pcf.cor = cor(Ln(dat$D), Ln(dat$pcf))
     EF.spe = cor(Ln(dat$EFt)
                  , Ln(dat$D)
                  , method = "spearman")
@@ -106,8 +108,8 @@ fit_lms <- function(sub){
                       , EF.cor.spe = EF.spe
                       , ab.cor.spe = ab.spe
                       , pcf.cor.spe = pcf.spe
-                      , ab.cor.raw
-                      , pcf.cor.raw
+                      , ab.cor
+                      , pcf.cor
                       , ell
                       
     ))
@@ -123,6 +125,7 @@ bef_cors <- map_dfr(unique(bef_by_ell$syst), function(syst){
       return(data.frame(fit_lms(dat)
                       , syst = syst
                       , study = dat$study[1]
+                      , study_plus = dat$study_plus[1]
    ))
 })
 toc()
@@ -130,7 +133,10 @@ toc()
 # just over a minute on MBP
 
 
+# challenge of finding a diverging palette that allows discrimination near middle
 bef_cors %>% 
+  group_by(syst) %>% 
+  mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
   pivot_longer(cols = ends_with(".slope")
                , values_to = "slope"
                , names_to ="slope_component") %>%
@@ -138,15 +144,15 @@ bef_cors %>%
                , values_to = "correlation"
                , names_to ="correlation_component") %>%
   filter(!grepl("spe", correlation_component )) %>% 
-  group_by(syst) %>% 
-  ggplot(aes(ell, correlation, color = syst))+
+  ggplot(aes(ell, correlation, color = best_ell))+
   geom_point(size = 0.2) +
-  facet_grid(study~correlation_component) +
+  facet_grid(study_plus~correlation_component) +
   theme_classic()+
   geom_hline(yintercept = 0, size = 0.2)  +
   # labs(color = "mean absolute \nlatitude for \nprovince")+
-  scale_color_viridis_d() +
-  geom_vline(xintercept = 1, size = 0.2) # +
+  scale_color_gradient2(low = "blue", high = "darkorange2", mid = "grey30") +
+  geom_vline(xintercept = 1, size = 0.2) +
+  theme( panel.spacing = unit(2, "lines")) 
   # scale_x_continuous(trans = scales::trans_new("cuberoot"
   #                                              , function(x){sign(x)*(abs(x))^(1/3)}
   #                                              , inverse = function(x){x^3}
