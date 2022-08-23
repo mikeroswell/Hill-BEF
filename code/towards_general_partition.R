@@ -1,96 +1,95 @@
-# analyze data with Tina partition
-source("code/format_BEF_data.R")
+# analyses of correlations between log diversity, log function, and also some 
+# relationships between those two variables and abundance and per-capita 
+# function.
 
-library(MeanRarity)
+# load packages. 
+# devtools::install_github("mikeroswell/MeanRarity")
+library(MeanRarity) 
+library(tidyverse)
 library(furrr)
-# loop over ell
+library(tictoc)
 
-cubeRt <- function(x){sign(x)*abs(x)^(1/3)}
+# helper functions
+# cubeRt <- function(x){sign(x)*abs(x)^(1/3)}
 
-ell_vec<-seq(-10, 10, 0.2)
-ell_vec <- c(exp(seq(-12,3, 0.1)), -(exp(seq(-12,3, 0.1))))
-ell_vec <- cubeRt(c(seq(-80, 80, 0.5)
-                    , seq(-0.5, 0.5, 0.01)))
+# load data
+bef_data <- read.csv("data/bef_data_for_analyses.csv")
+bef_data <- bef_data %>% filter(abund >0)
+
+# vector of Hill diversity scaling factors to consider
+ell_vec<-seq(-10, 10, 0.05)
+
+# tempting to look at greater density of points near ell = 0
+# ell_vec <- c(exp(seq(-12,3, 0.1)), -(exp(seq(-12,3, 0.1))))
+# ell_vec <- cubeRt(c(seq(-80, 80, 0.5)
+#                     , seq(-0.5, 0.5, 0.01)))
 
 # set number of "cores" to use for parallelization
 # on intel mac at least, hyperthreading is used so the maximum is double the 
 # number of physical cores
-nc<-7
+nc <- 7
 
-plan(strategy = "multiprocess", workers = nc)
+
 
 # this could use some work to become more general but works fine for lefcheck
 # remember that this works on groups only if they exist (e.g. site)
+# this was actually slower
+# sum_by_ell <- function(dat
+#                        , ell_vec
+#                        ,  ...){
+#   dat2 <- dat %>% mutate(ab = sum(abund)
+#                          , EFt = sum(ef)
+#                          , pcf = EFt/ab)
+#   res <- furrr::future_map_dfr(ell_vec, function(ell){
+#     dat2 %>% 
+#       group_by(ab, EFt, pcf, .add = TRUE) %>% 
+#       summarize(ell = ell
+#                 , D = rarity(abund, ell)
+#                 
+#                 # , meanlat = mean(abs(SiteLat))
+#       )})
+#   return(res)
+# }
+
 sum_by_ell <- function(dat
                        , ell_vec
-                       , abundance = "Abundance"
-                       , EF = "Biomass"
                        ,  ...){
   furrr::future_map_dfr(ell_vec, function(ell){
-    dat %>% summarize(ell =ell
-                       , D = rarity(eval(as.name(abundance)), ell)
-                       , ab = sum(eval(as.name(abundance)))
-                       , EFt = sum(eval(as.name(EF)))
+    dat %>% summarize(ell = ell
+                       , D = rarity(abund, ell)
+                       , ab = sum(abund)
+                       , EFt = sum(ef)
                        , pcf = EFt/ab
-                       # , meanlat = mean(abs(SiteLat))
                      )})
 }
 
-# res2<-sum_by_ell(ab_df %>% group_by(site) %>%  mutate(SiteLat = as.numeric(site)), ell_vec = ell_vec)
-fores <- sum_by_ell(ssf %>% group_by(loc, X1ha.Plot.Number), ell_vec = ell_vec, EF = "totCarbon")
-# fores %>% 
-#   ggplot(aes(ell, D, color = X1ha.Plot.Number)) +
-#   geom_point(size = 0.2) +
-#   theme_classic()+
-#   scale_color_viridis_d()+
-#   scale_y_log10() +
-#   xlim(c(-10, 10))
 
-fores %>% filter(ell == -10) %>% ggplot(aes(ab, pcf, color = loc)) + geom_point()+theme_classic() + scale_x_log10()+scale_y_log10()
-fores %>% filter(ell == -10) %>% ggplot(aes(ab, D, color = loc)) + geom_point()+theme_classic()+ scale_x_log10()+scale_y_log10()+facet_wrap(~loc, scales = "free")
+# times the crunching, if you want
+tictoc::tic()
+future::plan(strategy = "multiprocess", workers = nc)
+bef_by_ell <- sum_by_ell(bef_data %>% group_by(site, syst, study), ell_vec = ell_vec )
 
-ssf %>% group_by()
+tictoc::toc()
+# 1 minute on MBP
+
+bef_by_ell
 
 
-res<-sum_by_ell(lefcheck_by_site, ell_vec = ell_vec) 
-
-# res %>% filter(meanlat > 45) %>% 
-#   ggplot(aes(ell, D, color = meanlat)) +
-#   geom_point(size = 0.2) +
-#   theme_classic()+
-#   scale_color_viridis_c()+
-#   scale_y_log10() +
-#   xlim(c(-10, 2))
-
-
-# # check my work
-# res %>% ggplot(aes(ell, D, color = Province))+
-#   geom_point(alpha = 0.2)+
-#   theme_classic()
-
-
-fit_lms <- function(sub, dataset = "lefcheck"){
-  future_map_dfr(ell_vec, function(ell){
+fit_lms <- function(sub){
+  furrr::future_map_dfr(ell_vec, function(ell){
     dat = sub %>% filter(ell == !!ell) 
     # was struggling with the quoting stuff, the !! fixes
     abMod = lm(Ln(dat$ab) ~ Ln(dat$D))
     pcfMod = lm(Ln(dat$pcf) ~ Ln(dat$D))
-    ab.CI = confint(abMod, 2)
-    pcf.CI = confint(pcfMod, 2)
-    EF.CI = confint(lm(Ln(dat$EFt)~Ln(dat$D)), 2)
+    # ab.CI = confint(abMod, 2)
+    # pcf.CI = confint(pcfMod, 2)
+    # EF.CI = confint(lm(Ln(dat$EFt)~Ln(dat$D)), 2)
     
     pcf.slope = coef(pcfMod)[[2]]
     ab.slope = coef(abMod)[[2]]
     EF.slope = pcf.slope + ab.slope
     EF.cor = cor(Ln(dat$EFt)
                  , Ln(dat$D))
-    # ab.cor.part = ab.slope* sd(Ln(dat$D))/(sd(
-    #   mean(Ln(dat$pcf)) * Ln(dat$ab)
-    # ))
-    # pcf.cor.part = pcf.slope * sd(Ln(dat$D))/(sd(
-    #   mean(Ln(dat$ab)) * Ln(dat$pcf)
-    # ))
-    # 
     ab.cor.raw = cor(Ln(dat$ab), Ln(dat$D))
     pcf.cor.raw = cor(Ln(dat$D), Ln(dat$pcf))
     EF.spe = cor(Ln(dat$EFt)
@@ -110,62 +109,39 @@ fit_lms <- function(sub, dataset = "lefcheck"){
                       , ab.cor.raw
                       , pcf.cor.raw
                       , ell
-                      # , Latitude = dat$meanlat
-                      , dataset = dataset
+                      
     ))
   })
 }
 
 
-# exploratory figure to understand pcf and ab correlations
-pdf("figures/pcf_vs_ab_TEAM.pdf")
-fores %>% filter(ell ==1) %>% 
-  ggplot(aes(ab, pcf))+
-  geom_point() +
-  facet_wrap(~loc, scales = "free"
-           ,  nrow =3) +
-  theme_classic()
-dev.off()
 
-fores %>% ggplot(aes(D, pcf, color = ell))+
-  geom_point()+
-  facet_grid(~loc, scales = "free") +
-  theme_classic() +
-  scale_color_viridis_c(option = "plasma")
-
-fores %>% ggplot(aes(D, ab, color = ell))+
-  geom_point()+
-  facet_grid(~loc, scales = "free") +
-  theme_classic() +
-  scale_color_viridis_c(option = "plasma")
-
-fores %>% ggplot(aes(pcf, ab))+
-  geom_point()+
-  facet_grid(~loc, scales = "free") +
-  theme_classic() +
-  scale_color_viridis_c(option = "plasma")
-
-forest_out <- map_dfr(unique(locs), function(loc){
-  sub <- fores %>% filter(loc== !!loc)
-  data.frame(fit_lms(sub = sub, dataset = "TEAM"), loc = loc)
+tic()
+bef_cors <- map_dfr(unique(bef_by_ell$syst), function(syst){
+  dat <- bef_by_ell %>% 
+    filter( syst == !!syst)
+      return(data.frame(fit_lms(dat)
+                      , syst = syst
+                      , study = dat$study[1]
+   ))
 })
+toc()
 
-forest_out
+# just over a minute on MBP
 
 
-pdf("figures/quickDirty")
-forest_out %>% 
+bef_cors %>% 
   pivot_longer(cols = ends_with(".slope")
                , values_to = "slope"
-               , names_to ="component") %>%
+               , names_to ="slope_component") %>%
   pivot_longer(cols = contains("cor")
                , values_to = "correlation"
                , names_to ="correlation_component") %>%
   filter(!grepl("spe", correlation_component )) %>% 
-  group_by(loc) %>% 
-  ggplot(aes(ell, correlation, color = loc))+
+  group_by(syst) %>% 
+  ggplot(aes(ell, correlation, color = syst))+
   geom_point(size = 0.2) +
-  facet_wrap(~correlation_component) +
+  facet_grid(study~correlation_component) +
   theme_classic()+
   geom_hline(yintercept = 0, size = 0.2)  +
   # labs(color = "mean absolute \nlatitude for \nprovince")+
