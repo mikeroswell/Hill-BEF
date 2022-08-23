@@ -70,8 +70,8 @@ bee_2017$bee_gs[grepl("hitch", bee_2017$bee_gs)|grepl("wee", bee_2017$bee_gs)] <
 bee_2017 <- bee_2017 %>% filter(!grepl("seeTN", bee_2017$bee_gs) & !grepl("Bombyl", bee_2017$bee_gs))
 # need to group the complexes data now
 bee_fixed <- bee_2017 %>% 
-  group_by(syst = plantID, site, gen_sp = bee_gs) %>% 
   mutate(study = "genung") %>% 
+  group_by(syst = plantID, site, gen_sp = bee_gs, study) %>% 
   summarize(abund = sum(abund), ef = sum(ef)) %>% 
   filter(abund > 0) # keeping zeroes is unhelpful 
 
@@ -159,11 +159,11 @@ bci.50 = vector('list', 50) # empty list, one for each of the 1-ha plots we want
 
 for(i in 1:(row.divs-1)){ # x axis
   for(j in 1:(col.divs-1)){ # y axis
-    counter = counter+1
+    counter <- counter+1
     # "clunky but it works" way to select the right area
-    bci.50[[counter]] = bci.tree8[which(bci.tree8$gx >= x.seq[i] & bci.tree8$gx < x.seq[i+1] &
+    bci.50[[counter]] <- bci.tree8[which(bci.tree8$gx >= x.seq[i] & bci.tree8$gx < x.seq[i+1] &
                                           bci.tree8$gy >= y.seq[j] & bci.tree8$gy < y.seq[j+1]),]
-    bci.50[[counter]]$subplot = counter
+    bci.50[[counter]]$subplot <- paste0("HaSub_", counter)
   }
 }
 
