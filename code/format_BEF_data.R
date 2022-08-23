@@ -219,8 +219,14 @@ bef_data <- bind_rows(
   , bee_fixed
 )
 
-summary(bef_data)
-head(bef_data)
+bef_data <- bef_data %>% 
+  mutate(study_plus = if_else(study == "lefcheck", paste("lefcheck", c("temperate", "tropical")[1+as.numeric(grepl("TRUE", syst))], sep = "_")
+                              , study))
+
+# summary(bef_data)
+# head(bef_data)
+# 
+# unique(bef_data$study_plus)
 
 write.csv(bef_data, "data/bef_data_for_analyses.csv", row.names = FALSE)
 
