@@ -104,12 +104,18 @@ Hill-BEF
 Condit et al. 2019 data are not subject to copyright and are available under a
 CC 1.0 license from [https://doi.org/10.15146/5xcp-0d46](Dryad)
 
-Lefcheck et al. 2021 data are used under a CC BY 4.0 license and are available 
-from [https://figshare.com/articles/dataset/Species_richness_and_identity_both_determine_the_biomass_of_global_reef_fish_communities/16847029?file=31149808](figshare)
+Lefcheck et al. 2021 data are used under a CC BY 4.0 license and are available
+from
+[https://figshare.com/articles/dataset/Species_richness_and_identity_both_determine_the_biomass_of_global_reef_fish_communities/16847029?file=31149808](figshare)
 
-Genung et al. 2022 data are not subjec to copyright and are available under a CC 1.0 license from [https://datadryad.org/stash/dataset/doi:10.5061/dryad.qnk98sfkc](Dryad)
+Genung et al. 2022 data are not subject to copyright and are available under a
+CC 1.0 license from
+[https://datadryad.org/stash/dataset/doi:10.5061/dryad.qnk98sfkc](Dryad)
 
-The data from the now-defunct TEAM network 
+The data from the now-defunct TEAM network ...
+
+Other materials (e.g. code, figures) present here are freely available under a
+CC BY 4.0 license. You can cite this dataset by ...
 
 
 

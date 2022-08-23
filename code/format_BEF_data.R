@@ -220,8 +220,13 @@ bef_data <- bind_rows(
 )
 
 bef_data <- bef_data %>% 
-  mutate(study_plus = if_else(study == "lefcheck", paste("lefcheck", c("temperate", "tropical")[1+as.numeric(grepl("TRUE", syst))], sep = "_")
-                              , study))
+  mutate(study_plus = if_else(study == "lefcheck"
+                              , paste("reef_fish", c("temperate", "tropical")[1+as.numeric(grepl("TRUE", syst))], sep = "_") # TRUE
+                              , if_else(study %in% c("condit", "TEAM") #FALSE
+                                        , "tree_carbon" # TRUE
+                                        , if_else(study == "genung" # fALSE
+                                                  , "bee_pollination" # TRUE
+                                                  , study))) )# FALSE
 
 # summary(bef_data)
 # head(bef_data)
