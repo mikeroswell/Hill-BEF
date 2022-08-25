@@ -203,7 +203,7 @@ dev.off()
 
 # just diversity
 # D-ab and D-pcf graph
-pdf("figures/diversity_profiles.pdf", width = 4, height = 4) 
+pdf("figures/diversity_profiles.pdf", width = 4.5, height = 4) 
 
 bef_by_ell %>% 
   group_by(study_plus) %>% 
