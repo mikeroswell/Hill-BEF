@@ -124,7 +124,16 @@ reef_fish <- lefcheck_by_site %>%
          , abund = Abundance
          , ef = Biomass)
 
-
+# remove highly depauperate sites/systems with problematic sites
+reef_fish <- reef_fish %>% 
+  group_by(syst, site) %>% 
+  mutate(smallSite = n()<5 & sum(abund)<30) %>% 
+  ungroup() %>% 
+  group_by(syst) %>% 
+  mutate(small_syst = n_distinct(site)<10) %>% 
+  filter(!smallSite & !small_syst) 
+  
+  
 write.csv(reef_fish, "data/fish_for_analysis.csv")
 
 
@@ -228,6 +237,10 @@ bef_data <- bef_data %>%
                                                   , "bee_pollination" # TRUE
                                                   , study))) )# FALSE
 
+
+
+
+  
 # summary(bef_data)
 # head(bef_data)
 # 
