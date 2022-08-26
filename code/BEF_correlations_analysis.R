@@ -157,6 +157,8 @@ bef_cors %>%
   # get ref lines on first so they don't overlap anything
   geom_hline(yintercept = 0, size = 0.2)  +
   geom_vline(xintercept = 1, size = 0.2) +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   geom_line(size = 0.7) +
   facet_grid(~study_plus) +
   theme_classic()+
@@ -190,6 +192,8 @@ bef_cors %>%
   ggplot(aes(ell, correlation, color = clr))+
   geom_hline(yintercept = 0, size = 0.2)  +
   geom_vline(xintercept = 1, size = 0.2) +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   geom_line(size = 0.7) +
   facet_grid(factor(correlation_component, levels = c("ab.cor", "pcf.cor"))~study_plus) +
   theme_classic()+
@@ -200,6 +204,26 @@ bef_cors %>%
   xlim(-5,5)
 dev.off()
 
+bef_cors %>% 
+  group_by(syst, study_plus) %>% 
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
+  filter(abs(best_ell)<2) %>% 
+  ungroup() %>% 
+  summarize(mean(best_ell))
+
+pdf("figures/best_ell_histogram.pdf", width = 4.5, height = 3.5)
+bef_cors %>% 
+  group_by(syst, study_plus) %>% 
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
+  ggplot(aes(x = best_ell, fill = study_plus)) +
+  geom_histogram(color = "black")+
+  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  theme_classic() +
+  labs(x = "Hill diversity scaling factor (\"ell\") \nwith highest correlation between \nlog(diversity) and log(ecosystem function)"
+       , y = "community datasets", fill = "system")
+dev.off()
 
 # just diversity
 # D-ab and D-pcf graph
@@ -218,12 +242,13 @@ bef_by_ell %>%
          ) %>% 
   ggplot(aes(ell, D ))+
   geom_hline(yintercept = 0, size = 0.2)  +
-  geom_vline(xintercept = 1, size = 0.2) +
   geom_line(size = 0.2, aes(group =ss, color = colcol)) +
   facet_wrap(~study_plus, scales = "free") +
   theme_classic()+
   scale_color_viridis_c(option = "viridis") + 
-  geom_vline(xintercept = 1, size = 0.2) +
+  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   theme( legend.position = "none"
          , panel.spacing = unit(1, "lines"))+ 
   xlim(-5,5) +
