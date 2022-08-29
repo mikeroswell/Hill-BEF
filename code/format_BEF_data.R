@@ -115,7 +115,10 @@ lefcheck_by_site %>%
 reef_fish <- lefcheck_by_site %>% 
   ungroup() %>% 
   mutate(temperate = abs(SiteLat) > 23.44 ) %>% 
-  mutate(syst = paste(Province, temperate, sep = "_")
+  group_by(Province) %>% 
+  mutate(tempSite = ifelse(temperate, SiteCode, NA)) %>% 
+  mutate(tempProv = (n_distinct(tempSite)/n_distinct(SiteCode))>0.5) %>% 
+  mutate(syst = paste(Province, tempProv, sep = "_")
          , study = "lefcheck") %>% 
   select(study
          , syst
@@ -123,6 +126,9 @@ reef_fish <- lefcheck_by_site %>%
          , gen_sp = SPECIES_NAME
          , abund = Abundance
          , ef = Biomass)
+
+
+
 
 # remove highly depauperate sites/systems with problematic sites
 reef_fish <- reef_fish %>% 

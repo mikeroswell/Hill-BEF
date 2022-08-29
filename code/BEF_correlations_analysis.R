@@ -205,11 +205,11 @@ bef_cors %>%
 dev.off()
 
 
-bef_cors %>% 
-  group_by(syst) %>% 
-  mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
-  filter(best_ell < -4) %>% 
-  pull(syst)
+# bef_cors %>% 
+#   group_by(syst) %>% 
+#   mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
+#   filter(best_ell < -4) %>% 
+#   pull(syst)
 
 
 bef_data %>% 
@@ -218,10 +218,10 @@ bef_data %>%
   summarize(rich =n(), totAb = sum(abund)) %>% 
   arrange(totAb)
   
-  ggplot(aes(totAb, rich))+
-  geom_point()+
-  theme_classic()
-  
+  # ggplot(aes(totAb, rich))+
+  # geom_point()+
+  # theme_classic()
+  # 
 bef_by_ell %>% 
   filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
   filter(ell %in% c(-10, -1, 0, 1, 1.5, 2, 5, 10)) %>% 
