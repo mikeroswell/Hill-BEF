@@ -204,6 +204,47 @@ bef_cors %>%
   xlim(-5,5)
 dev.off()
 
+
+bef_cors %>% 
+  group_by(syst) %>% 
+  mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
+  filter(best_ell < -4) %>% 
+  pull(syst)
+
+
+bef_data %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  group_by(site) %>% 
+  summarize(rich =n(), totAb = sum(abund)) %>% 
+  arrange(totAb)
+  
+  ggplot(aes(totAb, rich))+
+  geom_point()+
+  theme_classic()
+  
+bef_by_ell %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  filter(ell %in% c(-10, -1, 0, 1, 1.5, 2, 5, 10)) %>% 
+  ggplot(aes(ab, D))+
+  geom_point()+
+  facet_wrap(~ell, scales = "free")+
+  theme_classic()
+
+bef_by_ell %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  filter(ell %in% c(-10, -1, 0, 1, 1.5, 2, 5, 10)) %>% 
+  ggplot(aes(log(D), log(EFt)))+
+  geom_smooth(method = "lm")+
+  geom_point()+
+  facet_wrap(~ell, scales = "free")+
+  theme_classic()
+
+bef_cors %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>%
+  ggplot(aes(ell, EF.cor))+
+  geom_point()+
+  theme_classic()
+
 bef_cors %>% 
   group_by(syst, study_plus) %>% 
   summarize(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
@@ -214,17 +255,49 @@ bef_cors %>%
 pdf("figures/best_ell_histogram.pdf", width = 4.5, height = 3.5)
 bef_cors %>% 
   group_by(syst, study_plus) %>% 
-  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
-  ggplot(aes(x = best_ell, fill = study_plus)) +
-  geom_histogram(color = "black")+
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
+            , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
+  ggplot(aes(x = best_ell
+             , fill = study_plus
+             , color = study_plus
+             , alpha = best_R2
+             , group = interaction(best_R2, study_plus))) +
+  geom_histogram()+
+  geom_hline(yintercept = 0, size = 0.4, linetype = "solid")+
   geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   theme_classic() +
   labs(x = "Hill diversity scaling factor (\"ell\") \nwith highest correlation between \nlog(diversity) and log(ecosystem function)"
-       , y = "community datasets", fill = "system")
+       , y = "community datasets", fill = "system", alpha = "best_R2" ) +
+  guides(color = "none")
 dev.off()
 
+pdf("figures/best_ell_biplot.pdf", width = 6, height = 3.5)
+bef_cors %>% 
+  group_by(syst, study_plus) %>% 
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
+            , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
+  ggplot(aes(x = best_ell
+             , y = best_R2
+             # , fill = study_plus
+             , color = study_plus
+             , shape = study_plus
+             # , alpha = best_R2
+             # , group = interaction(best_R2, study_plus)
+             )) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  scale_shape_manual(values = 15:18) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()
+        , panel.grid.minor = element_blank()
+        , strip.background = element_blank()) +
+  labs(x = "Hill diversity scaling factor (\"ell\") \nwith strongest correlation between \nlog(diversity) and log(ecosystem function)"
+       , y = "maximum R2", shape = "system", color = "system" ) 
+dev.off()
 # just diversity
 # D-ab and D-pcf graph
 pdf("figures/diversity_profiles.pdf", width = 4.5, height = 4) 
