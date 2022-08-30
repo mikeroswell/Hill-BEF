@@ -45,5 +45,5 @@ dp <- D.dat %>%
 
 # print to .pdf for full-page spread using patchwork
 pdf("figures/cartoon_fig_horizontal.pdf", height = 2.5, width = 6.5)
-bp + dp
+bp + dp + plot_annotation(tag_levels = 'a')
 dev.off()
