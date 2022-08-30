@@ -57,7 +57,7 @@ project.
 
 It should be possible to run all scripts in "code/" from the parent directory to
 recreate all analyses and figures in the published MS. For archived files,
-mileage will vary; we recommend reaching out to the autbors directly with any
+mileage will vary; we recommend reaching out to the authsors directly with any
 questions about this content.
 
 We expect that the files from the top-level of the "code" and "data" directories 
@@ -72,9 +72,12 @@ Hill-BEF
 ----- code
 |     | Download_BEF_data.R # code that pulls datasets from online repositories. 
 |     | format_BEF_data.R # format all datasets in similar way
-|     | towards_general_partition.R # run Tina's partitions on any data (now lefcheck)
+|     | BEF_correlation_analysis.R # compute correlations and make graphs
+|     | cartoon_fig.R # generate fake data to illustrate methods
+|
 ----------- archive
-|     |     | towards_general_partition.R # run Tina's partitions on any data (now lefcheck)| simulate_correlations_basic.R # explore parameter space for underlying, abstract, non-biological relationships
+|     |     | towards_general_partition.R # run Tina's partitions on any data (now lefcheck)
+|     |     | simulate_correlations_basic.R # explore parameter space for underlying, abstract, non-biological relationships
 |     |     | BEF_Hill_Forests_Feb22.R # explores diversity-ef relationships across ell-gradient and spatial scale for tropical forest datasets
 |     |     | BEF_HIll_Forests2_Feb22.R # looks v similar to file without 2 in name. 
 |     |     | Tina_paritition.R # minor changes from Tina's code

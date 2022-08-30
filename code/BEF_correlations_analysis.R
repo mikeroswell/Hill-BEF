@@ -376,3 +376,48 @@ map(unique(first_out$Province), function(province){
 
 dev.off()
 
+# quick data explorations to support some results text
+# what is the range of correlations for ell>1 for bee data?
+
+# here, looking at range of R2 for D-EF relnshp for ell>1
+bef_cors %>% 
+  filter( ell >1) %>% 
+  group_by(study_plus, syst) %>% 
+  summarize(R2.max = max(EF.cor^2)
+            , R2.mean = mean(EF.cor^2)
+            , R2.min = min(EF.cor^2)
+  ) %>% 
+  pivot_longer(cols = starts_with("R2")
+               , names_prefix = "R2\\."
+               , names_to = "quant"
+               , values_to = "val") %>% 
+  ggplot(aes(val, fill = study_plus))+
+  geom_histogram() +
+  facet_wrap(~quant) +
+  theme_classic()
+
+
+# EF-D for negative ell (raw correlation)
+bef_cors %>% 
+  filter( ell <0) %>% 
+  group_by(study_plus, syst) %>% 
+  summarize(R.max = max(EF.cor)
+            , R.mean = mean(EF.cor)
+            , R.min = min(EF.cor)
+  ) %>% 
+  pivot_longer(cols = starts_with("R")
+               , names_prefix = "R\\."
+               , names_to = "quant"
+               , values_to = "val") %>% 
+  ggplot(aes(val, fill = study_plus))+
+  geom_histogram() +
+  facet_wrap(~quant) +
+  theme_classic()
+
+
+# ab-D R2
+bef_cors %>% 
+  ggplot(aes(ell, ab.cor^2, color = study_plus))+ 
+  geom_point() +
+  theme_classic() +
+  geom_vline(xintercept = 1:3)
