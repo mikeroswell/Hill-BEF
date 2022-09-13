@@ -55,3 +55,5 @@ figures/*
 # oversized files
 
 data/hill_sim*
+data/bef_by_ell.csv
+data/lefcheck.csv
