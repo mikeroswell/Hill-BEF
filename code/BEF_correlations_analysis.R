@@ -274,8 +274,17 @@ bef_cors %>%
   ungroup() %>% 
   summarize(mean(best_ell))
 
-pdf("figures/best_ell_histogram.pdf", width = 4.5, height = 3.5)
-bef_cors %>% 
+pdf("figures/Fig2_best_ell_histogram.pdf", width = 4.5, height = 3.5)
+bef_cors %>%
+  mutate(study_plus = factor(study_plus 
+                           , levels = c("bee_pollination"
+                                         , "reef_fish_temperate"
+                                         , "reef_fish_tropical"
+                                         , "tree_carbon")
+                           , labels = lab_clean(c("bee_pollination"
+                                                 , "reef_fish_temperate"
+                                                 , "reef_fish_tropical"
+                                                 , "tree_carbon")))) %>% 
   group_by(syst, study_plus) %>% 
   summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
             , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
@@ -290,7 +299,7 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   theme_classic() +
-  labs(x = "Hill diversity scaling factor (\"ell\") \nwith highest correlation between \nlog(diversity) and log(ecosystem function)"
+  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
        , y = "community datasets", fill = "system", alpha = "best_R2" ) +
   guides(color = "none")
 dev.off()
@@ -317,7 +326,7 @@ bef_cors %>%
   theme(panel.grid.major = element_blank()
         , panel.grid.minor = element_blank()
         , strip.background = element_blank()) +
-  labs(x = "Hill diversity scaling factor (\"ell\") \nwith strongest correlation between \nlog(diversity) and log(ecosystem function)"
+  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
        , y = "maximum R2", shape = "system", color = "system" ) 
 dev.off()
 # just diversity
