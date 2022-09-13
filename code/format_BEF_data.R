@@ -4,18 +4,14 @@ library(tidyverse)
 
 # Bee data are from same dataset as Genung et al. 2022 Rare&Declining:
 # Visitation and estimated pollen deposition from Bees on 3 plant species at 
-# 25 sites set in a grid in Central New Jersey Sampled in 2 years. However,
-# visits and samples from the two years have been combined in this analysis and,
-# because "abundance" is measured as a per-minute visitation rate and sample
-# times weren't always identical across sites and years, the numbers are a bit
-# different from those in the Dryad repo https://doi.org/10.5061/dryad.qnk98sfkc
+# 25 sites set in a grid in Central New Jersey Sampled in 2 years. We use only 
+# 2017 data. Dryad repo https://doi.org/10.5061/dryad.qnk98sfkc
 
 # Although each plant species was sampled in the same 25 sites, we treat the 
 # samples from a given plant species as a distinct "metacommunity", as 
 # pollination of *that plant* is the ecosystem function in this context. 
 
-# MG provided data source files. Raw data housed in Winfree Lab database at
-# Rutgers U.
+
 
 fix_bee <- function(x, value_name){pivot_longer(data.frame(x) 
                                                 , cols = 3:last_col()
