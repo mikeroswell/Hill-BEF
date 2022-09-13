@@ -442,8 +442,7 @@ bef_cors %>%
   ggplot(aes(ell, ab.cor^2, color = study_plus))+ 
   geom_point() +
   theme_classic() +
-  geom_vline(xintercept = 1:3)
-<<<<<<< HEAD
+
 
 # T.test stuff
 bef_cors %>% filter(ell %in% c(-10, -1, 0, 1, 1.5, 10)) %>% 
@@ -452,5 +451,4 @@ bef_cors %>% filter(ell %in% c(-10, -1, 0, 1, 1.5, 10)) %>%
             , lcl = t.test(EF.cor)$conf.int[1]
             , ucl = t.test(EF.cor)$conf.int[2]
             , two_sided_p = t.test(EF.cor)$p.value)
-=======
->>>>>>> af9a1d57a43f075e5e01838ed9ea0b9db28290aa
+

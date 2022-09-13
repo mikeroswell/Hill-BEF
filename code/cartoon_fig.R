@@ -40,13 +40,10 @@ dp <- D.dat %>%
   ggplot(aes(ell, d, color = com)) +
   geom_vline(xintercept = c(-1:1), linetype = c(3:1)) +
   geom_line(size = 1.2) +
-<<<<<<< HEAD
+
   labs(x = "Hill diversity scaling factor (ell)" 
        , y = "diversity"
        , color = "community") +
-=======
-  labs(y = "Hill diversity", color = "community") +
->>>>>>> af9a1d57a43f075e5e01838ed9ea0b9db28290aa
   theme_classic()
 
 # print to .pdf for full-page spread using patchwork
