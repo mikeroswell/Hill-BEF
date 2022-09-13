@@ -115,7 +115,10 @@ lefcheck_by_site %>%
 reef_fish <- lefcheck_by_site %>% 
   ungroup() %>% 
   mutate(temperate = abs(SiteLat) > 23.44 ) %>% 
-  mutate(syst = paste(Province, temperate, sep = "_")
+  group_by(Province) %>% 
+  mutate(tempSite = ifelse(temperate, SiteCode, NA)) %>% 
+  mutate(tempProv = (n_distinct(tempSite)/n_distinct(SiteCode))>0.5) %>% 
+  mutate(syst = paste(Province, tempProv, sep = "_")
          , study = "lefcheck") %>% 
   select(study
          , syst
@@ -125,6 +128,18 @@ reef_fish <- lefcheck_by_site %>%
          , ef = Biomass)
 
 
+
+
+# remove highly depauperate sites/systems with problematic sites
+reef_fish <- reef_fish %>% 
+  group_by(syst, site) %>% 
+  mutate(smallSite = n()<5 & sum(abund)<30) %>% 
+  ungroup() %>% 
+  group_by(syst) %>% 
+  mutate(small_syst = n_distinct(site)<10) %>% 
+  filter(!smallSite & !small_syst) 
+  
+  
 write.csv(reef_fish, "data/fish_for_analysis.csv")
 
 
@@ -228,6 +243,10 @@ bef_data <- bef_data %>%
                                                   , "bee_pollination" # TRUE
                                                   , study))) )# FALSE
 
+
+
+
+  
 # summary(bef_data)
 # head(bef_data)
 # 
