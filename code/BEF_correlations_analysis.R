@@ -84,7 +84,7 @@ bef_by_ell <- sum_by_ell(bef_data %>% group_by(site, syst, study, study_plus), e
 tictoc::toc()
 # under a minute MBP
 
-bef_by_ell
+write.csv(bef_by_ell, "data/bef_by_ell.csv", row.names = FALSE)
 
 fit_lms <- function(sub){
   furrr::future_map_dfr(ell_vec, function(ell){
@@ -142,17 +142,24 @@ toc()
 # just over a minute on MBP
 
 
+write.csv(bef_cors, "data/bef_correlations.csv", row.names = FALSE)
+bef_cors <- read.csv("data/bef_correlations.csv")
 # D-EF Correlation graph
 
-pdf("figures/D-EF_cor.pdf", width = 6.5, height = 2.5)
+lab_clean <- function(x){str_replace(x, "_", " ") %>% 
+                                  str_replace("_", " \\*")}
+
+pdf("figures/Fig3_D-EF_cor.pdf", width = 6.5, height = 2.5)
+
+
 bef_cors %>% 
   group_by(syst) %>% 
   left_join(clr_tab) %>% 
   mutate(study_plus = factor(study_plus
-                             , levels = c("tree_carbon"
-                                          , "bee_pollination"
+                             , levels = c("bee_pollination"
                                           , "reef_fish_temperate"
-                                          , "reef_fish_tropical"))) %>% 
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon"))) %>%  
   ggplot(aes(ell, EF.cor, color = clr))+
   # get ref lines on first so they don't overlap anything
   geom_hline(yintercept = 0, size = 0.2)  +
@@ -160,13 +167,24 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   geom_line(size = 0.7) +
-  facet_grid(~study_plus) +
+  facet_grid(~study_plus
+             , labeller = labeller(study_plus = lab_clean)) +
   theme_classic()+
   scale_color_viridis_d(option = "plasma") + 
   theme(legend.position = "none"
-         , panel.spacing = unit(1, "lines"))+ 
+        , panel.spacing = unit(1, "lines")
+        , strip.background = element_blank()
+        # , strip.text.x = element_blank() #element_text(vjust = 1, hjust = 0.3 )
+        )+ 
   xlim(-5,5) +
-  labs(y = "correlation between \nlog(D) and log(EF)")
+  labs(x = "Hill diversity scaling factor (ell)"
+       , y = "BEF correlation") + 
+  geom_text(aes(label = letters[as.numeric(study_plus)])
+            , x = -4
+            , y = 0.9
+            , color = "black"
+        )
+            
 dev.off()
 
 # D-ab and D-pcf graph
@@ -185,17 +203,21 @@ bef_cors %>%
   filter(!grepl("spe", correlation_component ) & !grepl("EF", correlation_component )) %>% 
   left_join(clr_tab) %>% 
   mutate(study_plus = factor(study_plus
-                             , levels = c("tree_carbon"
-                                          , "bee_pollination"
+                             , levels = c("bee_pollination"
                                           , "reef_fish_temperate"
-                                          , "reef_fish_tropical"))) %>% 
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon"))) %>%  
+
   ggplot(aes(ell, correlation, color = clr))+
   geom_hline(yintercept = 0, size = 0.2)  +
   geom_vline(xintercept = 1, size = 0.2) +
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   geom_line(size = 0.7) +
-  facet_grid(factor(correlation_component, levels = c("ab.cor", "pcf.cor"))~study_plus) +
+  facet_grid(factor(correlation_component
+                    , levels = c("ab.cor", "pcf.cor")
+                    , labels = c("abundance correlation", "per-capita function correlation")) ~ study_plus
+             , labeller = labeller(study_plus = lab_clean)) +
   theme_classic()+
   scale_color_viridis_d(option = "plasma") + 
   geom_vline(xintercept = 1, size = 0.2) +
@@ -203,6 +225,47 @@ bef_cors %>%
          , panel.spacing = unit(1.2, "lines"))+ 
   xlim(-5,5)
 dev.off()
+
+
+# bef_cors %>% 
+#   group_by(syst) %>% 
+#   mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
+#   filter(best_ell < -4) %>% 
+#   pull(syst)
+
+
+bef_data %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  group_by(site) %>% 
+  summarize(rich =n(), totAb = sum(abund)) %>% 
+  arrange(totAb)
+  
+  # ggplot(aes(totAb, rich))+
+  # geom_point()+
+  # theme_classic()
+  # 
+bef_by_ell %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  filter(ell %in% c(-10, -1, 0, 1, 1.5, 2, 5, 10)) %>% 
+  ggplot(aes(ab, D))+
+  geom_point()+
+  facet_wrap(~ell, scales = "free")+
+  theme_classic()
+
+bef_by_ell %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>% 
+  filter(ell %in% c(-10, -1, 0, 1, 1.5, 2, 5, 10)) %>% 
+  ggplot(aes(log(D), log(EFt)))+
+  geom_smooth(method = "lm")+
+  geom_point()+
+  facet_wrap(~ell, scales = "free")+
+  theme_classic()
+
+bef_cors %>% 
+  filter(syst == "Cold Temperate Northeast Pacific_TRUE") %>%
+  ggplot(aes(ell, EF.cor))+
+  geom_point()+
+  theme_classic()
 
 bef_cors %>% 
   group_by(syst, study_plus) %>% 
@@ -214,17 +277,49 @@ bef_cors %>%
 pdf("figures/best_ell_histogram.pdf", width = 4.5, height = 3.5)
 bef_cors %>% 
   group_by(syst, study_plus) %>% 
-  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
-  ggplot(aes(x = best_ell, fill = study_plus)) +
-  geom_histogram(color = "black")+
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
+            , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
+  ggplot(aes(x = best_ell
+             , fill = study_plus
+             , color = study_plus
+             , alpha = best_R2
+             , group = interaction(best_R2, study_plus))) +
+  geom_histogram()+
+  geom_hline(yintercept = 0, size = 0.4, linetype = "solid")+
   geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   theme_classic() +
   labs(x = "Hill diversity scaling factor (\"ell\") \nwith highest correlation between \nlog(diversity) and log(ecosystem function)"
-       , y = "community datasets", fill = "system")
+       , y = "community datasets", fill = "system", alpha = "best_R2" ) +
+  guides(color = "none")
 dev.off()
 
+pdf("figures/best_ell_biplot.pdf", width = 6, height = 3.5)
+bef_cors %>% 
+  group_by(syst, study_plus) %>% 
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
+            , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
+  ggplot(aes(x = best_ell
+             , y = best_R2
+             # , fill = study_plus
+             , color = study_plus
+             , shape = study_plus
+             # , alpha = best_R2
+             # , group = interaction(best_R2, study_plus)
+             )) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  scale_shape_manual(values = 15:18) + 
+  theme_bw() +
+  theme(panel.grid.major = element_blank()
+        , panel.grid.minor = element_blank()
+        , strip.background = element_blank()) +
+  labs(x = "Hill diversity scaling factor (\"ell\") \nwith strongest correlation between \nlog(diversity) and log(ecosystem function)"
+       , y = "maximum R2", shape = "system", color = "system" ) 
+dev.off()
 # just diversity
 # D-ab and D-pcf graph
 pdf("figures/diversity_profiles.pdf", width = 4.5, height = 4) 
@@ -303,3 +398,56 @@ map(unique(first_out$Province), function(province){
 
 dev.off()
 
+# quick data explorations to support some results text
+# what is the range of correlations for ell>1 for bee data?
+
+# here, looking at range of R2 for D-EF relnshp for ell>1
+bef_cors %>% 
+  filter( ell >1) %>% 
+  group_by(study_plus, syst) %>% 
+  summarize(R2.max = max(EF.cor^2)
+            , R2.mean = mean(EF.cor^2)
+            , R2.min = min(EF.cor^2)
+  ) %>% 
+  pivot_longer(cols = starts_with("R2")
+               , names_prefix = "R2\\."
+               , names_to = "quant"
+               , values_to = "val") %>% 
+  ggplot(aes(val, fill = study_plus))+
+  geom_histogram() +
+  facet_wrap(~quant) +
+  theme_classic()
+
+
+# EF-D for negative ell (raw correlation)
+bef_cors %>% 
+  filter( ell <0) %>% 
+  group_by(study_plus, syst) %>% 
+  summarize(R.max = max(EF.cor)
+            , R.mean = mean(EF.cor)
+            , R.min = min(EF.cor)
+  ) %>% 
+  pivot_longer(cols = starts_with("R")
+               , names_prefix = "R\\."
+               , names_to = "quant"
+               , values_to = "val") %>% 
+  ggplot(aes(val, fill = study_plus))+
+  geom_histogram() +
+  facet_wrap(~quant) +
+  theme_classic()
+
+
+# ab-D R2
+bef_cors %>% 
+  ggplot(aes(ell, ab.cor^2, color = study_plus))+ 
+  geom_point() +
+  theme_classic() +
+  geom_vline(xintercept = 1:3)
+
+# T.test stuff
+bef_cors %>% filter(ell %in% c(-10, -1, 0, 1, 1.5, 10)) %>% 
+  group_by(ell) %>% 
+  summarize(mean_R2 = mean(EF.cor^2)
+            , lcl = t.test(EF.cor)$conf.int[1]
+            , ucl = t.test(EF.cor)$conf.int[2]
+            , two_sided_p = t.test(EF.cor)$p.value)
