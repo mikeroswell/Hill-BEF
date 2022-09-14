@@ -48,5 +48,20 @@ dp <- D.dat %>%
 
 # print to .pdf for full-page spread using patchwork
 pdf("figures/cartoon_fig_horizontal.pdf", height = 2.5, width = 6.5)
-bp + dp + plot_annotation(tag_levels = 'a')
+bp +
+  theme(plot.tag.position  = c(.22, 1.02) # klugey numbers
+        , text = element_text(face = "bold", size = 0.8*11)
+        , axis.title = element_text(face = "plain", size = 11)
+        , axis.text = element_text(face = "plain", size = 0.8*11)
+        ) + 
+dp + 
+  theme(plot.tag.position  = c(.15, 1.02) # klugey numbers
+        , text = element_text(face = "bold", size = 0.8*11)
+        , axis.title = element_text(face = "plain", size = 11)
+        , legend.title = element_text(face = "plain", size = 11)
+        , legend.text = element_text(face = "plain", size = 11)
+        , axis.text = element_text(face = "plain", size = 0.8*11)
+        ) + 
+plot_annotation(tag_levels = 'a')
+
 dev.off()

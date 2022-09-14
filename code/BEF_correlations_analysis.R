@@ -8,6 +8,7 @@ library(MeanRarity)
 library(tidyverse)
 library(furrr)
 library(tictoc)
+library(egg)
 
 # helper functions
 # cubeRt <- function(x){sign(x)*abs(x)^(1/3)}
@@ -150,9 +151,7 @@ lab_clean <- function(x){str_replace(x, "_", " ") %>%
                                   str_replace("_", " \\*")}
 
 pdf("figures/Fig3_D-EF_cor.pdf", width = 6.5, height = 2.5)
-
-
-bef_cors %>% 
+f3 <- bef_cors %>% 
   group_by(syst) %>% 
   left_join(clr_tab) %>% 
   mutate(study_plus = factor(study_plus
@@ -178,20 +177,18 @@ bef_cors %>%
         )+ 
   xlim(-5,5) +
   labs(x = "Hill diversity scaling factor (ell)"
-       , y = "BEF correlation") + 
-  geom_text(aes(label = letters[as.numeric(study_plus)])
-            , x = -4
-            , y = 0.9
-            , color = "black"
-        )
-            
+       , y = "BEF correlation") 
+
+tag_facet(f3, open = NULL, close = NULL)
+
 dev.off()
 
 # D-ab and D-pcf graph
-pdf("figures/EF_cor_partions.pdf", width = 6.5, height = 4.5) 
+pdf("figures/Fig4_EF_cor_partions.pdf", width = 6.5, height = 5) 
 # note that the height is klugey, should be fixed. 
 
-bef_cors %>% 
+f4 <- bef_cors %>% 
+  filter(ell>-5 & ell <5) %>% 
   group_by(syst) %>% 
   mutate(best_ell = ell[which.max(abs(.data$EF.cor))]) %>% 
   pivot_longer(cols = ends_with(".slope")
@@ -206,7 +203,10 @@ bef_cors %>%
                              , levels = c("bee_pollination"
                                           , "reef_fish_temperate"
                                           , "reef_fish_tropical"
-                                          , "tree_carbon"))) %>%  
+                                          , "tree_carbon"))
+         , correlation_component = factor(correlation_component
+                                          , levels = c("ab.cor", "pcf.cor")
+                                          , labels = c("abundance correlation", "per-capita function correlation"))) %>%  
 
   ggplot(aes(ell, correlation, color = clr))+
   geom_hline(yintercept = 0, size = 0.2)  +
@@ -214,16 +214,23 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
   geom_line(size = 0.7) +
-  facet_grid(factor(correlation_component
-                    , levels = c("ab.cor", "pcf.cor")
-                    , labels = c("abundance correlation", "per-capita function correlation")) ~ study_plus
-             , labeller = labeller(study_plus = lab_clean)) +
+  facet_grid(correlation_component ~ study_plus
+             , labeller = labeller(study_plus = lab_clean)
+             , switch = "y") +
   theme_classic()+
   scale_color_viridis_d(option = "plasma") + 
   geom_vline(xintercept = 1, size = 0.2) +
   theme( legend.position = "none"
-         , panel.spacing = unit(1.2, "lines"))+ 
+         , panel.spacing = unit(1.2, "lines")
+         , strip.text.y = element_text(size = rel(1))
+         , strip.placement = "outside"
+         , strip.background = element_blank()
+         , axis.title.y = element_blank()
+         ) + 
+  labs(x = "Hill diversity scaling factor (ell)") +
   xlim(-5,5)
+
+tag_facet(f4, open = NULL, close = NULL)
 dev.off()
 
 
@@ -304,9 +311,51 @@ bef_cors %>%
   guides(color = "none")
 dev.off()
 
-pdf("figures/best_ell_biplot.pdf", width = 6, height = 3.5)
+pdf("figures/Fig2_variant_solid_best_ell_histogram.pdf", width = 4.5, height = 3.5)
+bef_cors %>%
+  mutate(study_plus = factor(study_plus 
+                             , levels = c("bee_pollination"
+                                          , "reef_fish_temperate"
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon")
+                             , labels = lab_clean(c("bee_pollination"
+                                                    , "reef_fish_temperate"
+                                                    , "reef_fish_tropical"
+                                                    , "tree_carbon")))) %>% 
+  group_by(syst, study_plus) %>% 
+  summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
+            , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
+  ggplot(aes(x = best_ell
+             , fill = study_plus
+             , color = study_plus
+             # , alpha = best_R2
+             , group = interaction(best_R2, study_plus))) +
+  geom_histogram()+
+  geom_hline(yintercept = 0, size = 0.4, linetype = "solid")+
+  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  theme_classic() +
+  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
+       , y = "community datasets", fill = "system"
+       # , alpha = "best_R2" 
+       ) +
+  guides(color = "none")
+dev.off()
+
+
+pdf("figures/Fig2_variant_best_ell_biplot.pdf", width = 6, height = 3.5)
 bef_cors %>% 
   group_by(syst, study_plus) %>% 
+  mutate(study_plus = factor(study_plus 
+                             , levels = c("bee_pollination"
+                                          , "reef_fish_temperate"
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon")
+                             , labels = lab_clean(c("bee_pollination"
+                                                    , "reef_fish_temperate"
+                                                    , "reef_fish_tropical"
+                                                    , "tree_carbon")))) %>% 
   summarize(best_ell = ell[which.max(abs(.data$EF.cor))]
             , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
   ggplot(aes(x = best_ell
