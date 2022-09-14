@@ -126,7 +126,7 @@ fit_lms <- function(sub){
   })
 }
 
-
+bef_by_ell <- read.csv("data/bef_by_ell.csv")
 
 tic()
 bef_cors <- map_dfr(unique(bef_by_ell$syst), function(syst){
@@ -162,29 +162,30 @@ f3 <- bef_cors %>%
   ggplot(aes(ell, EF.cor, color = clr))+
   # get ref lines on first so they don't overlap anything
   geom_hline(yintercept = 0, size = 0.2)  +
-  geom_vline(xintercept = 1, size = 0.2) +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  geom_vline(xintercept = 1, size = 1) +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   geom_line(size = 0.7) +
   facet_grid(~study_plus
              , labeller = labeller(study_plus = lab_clean)) +
   theme_classic()+
-  scale_color_viridis_d(option = "plasma") + 
+  # scale_color_manual(values = hcl.colors(16, "hawaii")) +
+  scale_color_viridis_d(option = "plasma") +
   theme(legend.position = "none"
-        , panel.spacing = unit(1, "lines")
+        , panel.spacing = unit(1.1, "lines")
         , strip.background = element_blank()
         # , strip.text.x = element_blank() #element_text(vjust = 1, hjust = 0.3 )
         )+ 
   xlim(-5,5) +
   labs(x = "Hill diversity scaling factor (ell)"
-       , y = "BEF correlation") 
+       , y = "\nBEF correlation") 
 
-tag_facet(f3, open = NULL, close = NULL)
+tag_facet(f3, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
 
 dev.off()
 
 # D-ab and D-pcf graph
-pdf("figures/Fig4_EF_cor_partions.pdf", width = 6.5, height = 5) 
+pdf("figures/Fig4_EF_cor_partions.pdf", width = 6.5, height = 4.8) 
 # note that the height is klugey, should be fixed. 
 
 f4 <- bef_cors %>% 
@@ -206,22 +207,21 @@ f4 <- bef_cors %>%
                                           , "tree_carbon"))
          , correlation_component = factor(correlation_component
                                           , levels = c("ab.cor", "pcf.cor")
-                                          , labels = c("abundance correlation", "per-capita function correlation"))) %>%  
+                                          , labels = c("abundance \ncorrelation", "per-capita function \ncorrelation"))) %>%  
 
   ggplot(aes(ell, correlation, color = clr))+
   geom_hline(yintercept = 0, size = 0.2)  +
-  geom_vline(xintercept = 1, size = 0.2) +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  geom_vline(xintercept = 1, size = 1) +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   geom_line(size = 0.7) +
   facet_grid(correlation_component ~ study_plus
              , labeller = labeller(study_plus = lab_clean)
              , switch = "y") +
   theme_classic()+
   scale_color_viridis_d(option = "plasma") + 
-  geom_vline(xintercept = 1, size = 0.2) +
   theme( legend.position = "none"
-         , panel.spacing = unit(1.2, "lines")
+         , panel.spacing = unit(1.1, "lines")
          , strip.text.y = element_text(size = rel(1))
          , strip.placement = "outside"
          , strip.background = element_blank()
@@ -230,7 +230,7 @@ f4 <- bef_cors %>%
   labs(x = "Hill diversity scaling factor (ell)") +
   xlim(-5,5)
 
-tag_facet(f4, open = NULL, close = NULL)
+tag_facet(f4, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
 dev.off()
 
 
@@ -281,7 +281,7 @@ bef_cors %>%
   ungroup() %>% 
   summarize(mean(best_ell))
 
-pdf("figures/Fig2_best_ell_histogram.pdf", width = 4.5, height = 3.5)
+pdf("figures/Fig2_variant_best_ell_histogram_with_r2_shading.pdf", width = 4.5, height = 3.5)
 bef_cors %>%
   mutate(study_plus = factor(study_plus 
                            , levels = c("bee_pollination"
@@ -302,16 +302,16 @@ bef_cors %>%
              , group = interaction(best_R2, study_plus))) +
   geom_histogram()+
   geom_hline(yintercept = 0, size = 0.4, linetype = "solid")+
-  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  geom_vline(xintercept = 1, size = 1, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme_classic() +
   labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
        , y = "community datasets", fill = "system", alpha = "best_R2" ) +
   guides(color = "none")
 dev.off()
 
-pdf("figures/Fig2_variant_solid_best_ell_histogram.pdf", width = 4.5, height = 3.5)
+pdf("figures/Fig2_solid_best_ell_histogram.pdf", width = 4.5, height = 3.5)
 bef_cors %>%
   mutate(study_plus = factor(study_plus 
                              , levels = c("bee_pollination"
@@ -327,14 +327,14 @@ bef_cors %>%
             , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
   ggplot(aes(x = best_ell
              , fill = study_plus
-             , color = study_plus
              # , alpha = best_R2
-             , group = interaction(best_R2, study_plus))) +
-  geom_histogram()+
-  geom_hline(yintercept = 0, size = 0.4, linetype = "solid")+
-  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+             , group = interaction(best_R2, study_plus))
+         ) +
+  geom_histogram(color = "black")+
+  # geom_hline(yintercept = 0, size = 0.2, linetype = "solid")+
+  geom_vline(xintercept = 1, size = 1, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme_classic() +
   labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
        , y = "community datasets", fill = "system"
@@ -360,23 +360,23 @@ bef_cors %>%
             , best_R2 = (EF.cor[which.max(abs(.data$EF.cor))])^2) %>% 
   ggplot(aes(x = best_ell
              , y = best_R2
-             # , fill = study_plus
-             , color = study_plus
+             , fill = study_plus
+            
              , shape = study_plus
              # , alpha = best_R2
              # , group = interaction(best_R2, study_plus)
-             )) +
-  geom_point(size = 2) +
-  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
-  scale_shape_manual(values = 15:18) + 
+             ) , color = "black") +
+  geom_point(size = 2.4) +
+  geom_vline(xintercept = 1, size = 1, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
+  scale_shape_manual(values = 21:24) + 
   theme_bw() +
   theme(panel.grid.major = element_blank()
         , panel.grid.minor = element_blank()
         , strip.background = element_blank()) +
   labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
-       , y = "maximum R2", shape = "system", color = "system" ) 
+       , y = bquote('BEF '*r^2*''), shape = "system", fill = "system" ) 
 dev.off()
 # just diversity
 # D-ab and D-pcf graph
@@ -399,9 +399,9 @@ bef_by_ell %>%
   facet_wrap(~study_plus, scales = "free") +
   theme_classic()+
   scale_color_viridis_c(option = "viridis") + 
-  geom_vline(xintercept = 1, size = 0.2, linetype = "solid") +
-  geom_vline(xintercept = 0, size = 0.2, linetype = "dashed") +
-  geom_vline(xintercept = -1, size = 0.2, linetype = "dotted") +
+  geom_vline(xintercept = 1, size = 1, linetype = "solid") +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme( legend.position = "none"
          , panel.spacing = unit(1, "lines"))+ 
   xlim(-5,5) +
