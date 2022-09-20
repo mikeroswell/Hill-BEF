@@ -388,10 +388,10 @@ bef_by_ell %>%
   group_by(site, syst, colcol) %>% 
   mutate(ss = paste(site, syst)
          , study_plus = factor(study_plus
-                             , levels = c("tree_carbon"
-                                          , "bee_pollination"
+                             , levels = c( "bee_pollination"
                                           , "reef_fish_temperate"
-                                          , "reef_fish_tropical"))
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon"))
          ) %>% 
   ggplot(aes(ell, D ))+
   geom_hline(yintercept = 0, size = 0.2)  +

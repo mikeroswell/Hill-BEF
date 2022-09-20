@@ -211,6 +211,17 @@ sixSiteForests<-map_dfr(locs, function(loc){
     dat <- read.csv(paste0("data/", loc, "_biomass.csv"))
     data.frame(loc, dat)})
 
+# get areal extents
+
+sixSiteForests %>% 
+  filter(Year == 2012) %>% 
+  group_by(loc, X1ha.Plot.Number) %>% 
+  summarize(lon = mean(X1ha.Plot.X.Coordinate, na.rm= TRUE)
+            , lat = mean(X1ha.Plot.Y.Coordinate, na.rm= TRUE)) %>% 
+  drop_na() %>% # wd be good to have VB coords, currently missing
+  group_by(loc) %>% 
+  summarize(mdist = max(fossil::earth.dist(data.frame(.data$lon, .data$lat))))
+
 TEAM_Forests<-sixSiteForests %>% 
   filter(Year == 2012) %>% 
   group_by(syst = loc
