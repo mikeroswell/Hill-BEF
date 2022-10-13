@@ -7,45 +7,37 @@ which scaling exponent is best?
 # Contributing authors
 
 Michael Roswell1 mroswell@umd.edu
-Tina Harrison tinaharrison09@gmail.com
-Mark A. Genung3,4 mark.genung@louisiana.edu
+Tina Harrison2 tinaharrison09@gmail.com
+Mark A. Genung2  mark.genung@louisiana.edu
 
 1. Dept. of Entomology, University of Maryland, College Park, MD 20742, USA
-1. 
 1. Dept of Biology, University of Louisiana, Lafayette, LA 70503, USA
-1. Department of Ecology, Evolution & Natural Resources, Rutgers University, NJ
-08901, USA
 
 
 # Synopsis 
 
-Hill diversities have been promoted as robust metrics that integrate relative
-abundances more transparently into biodiversity measurement. Hill diversities
-summarize the distribution of relative abundances in an assemblage, and are
-governed by a control parameter that determines the relative emphasis on rare
-versus common species. Little empirical or theoretical work guides how to select
-the value of the control parameter, however, and most biodiversity studies use
-species richness, emphasizing the contribution of the rarest species to
-diversity. As an important justification for measuring and conserving
-biodiversity is protecting of the functions and services conferred by diverse
-ecosystems, here we ask how the relationship between biodiversity and ecosystem
-function (BEF) changes with the specification of species diversity through the
-Hill diversity control parameter. We tested which value of the control parameter
-produces the strongest BEF relationship in several datasets, of real-world
-ecosystem provision by wild, free-living organisms: pollination by wild bees,
-above-ground carbon storage by tropical trees, and biomass provision from
-reef-associated fish. We measured the strength of the correlation between
-diversity and community-level as well as per-capita function. Unless richness is
-always more predictive than other Hill diversities for both full-community and
-per-capita function, adjusting the emphasis on rare versus common species may
-reveal mechanisms underlying the BEF relationship, and provide more
-readily-interpreted summaries of biodiversity change.
+This repository contains data and code for our submission to the Phil Trans RSB
+special issue on Biodiversity monitoring, "Biodiversity-ecosystem function
+relationships change in sign and magnitude across the Hill diversity spectrum".
+The repo also contains lots of notes and the starts of ideas that are not in the
+MS. Upon article acceptance, the relevant components will be migrated to a
+permanent archive (e.g., Dryad & Figshare).
 
-# Organization
+# Keywords 
+abundance, biodiversity, diversity profile, ecosystem function, Hill number, rarity
 
-Four directories. Anything used in the published manuscript will be at the top
-level of one of these four directories, additional files from manuscript
-preparation may be found in "archive" subdirectories.
+# Summary 
+Motivated by accelerating anthropogenic extinctions, decades of biodiversity-ecosystem function (BEF) experiments show that ecosystem function declines with species loss from local communities. Yet, at the local scale, changes in species’ total and relative abundances are more common than species loss. The consensus best biodiversity measures are Hill numbers, which use a scaling parameter, ℓ, to emphasize rarer versus more common species. Shifting that emphasis captures distinct, function-relevant biodiversity gradients beyond species richness. Here, we surmised that Hill numbers that emphasize rare species more than richness may distinguish large, complex, and presumably higher-functioning assemblages from smaller and simpler ones. In this study, we tested which values of ℓ produce the strongest BEF relationships in community datasets of ecosystem functions provided by wild, free-living organisms. We found that ℓ values that emphasized rare species more than richness most often correlated most strongly with ecosystem functions. As emphasis shifted to more common species, BEF correlations were often weak and/or negative. We argue that unconventional Hill diversities that shift emphasis towards rarer species may be useful for describing biodiversity change, and that employing a wide spectrum of Hill numbers can clarify mechanisms underlying BEF relationships. 
+
+
+# Repo Organization
+
+Four directories. Anything used in the published manuscript is contained in
+"code", "data", or possibly "figures". "Rmds" contains notes and ideas not
+included directly in the MS. Within the three directories with
+publication-relevatnt content, the content for the published MS will be at the
+top level of the directories, additional files from manuscript preparation may
+be found in "archive" subdirectories.
 - "code/" contains .R files for data wrangling, analysis, and producing figures. 
 - "data/" contains files of various sorts, including source and derived
 binaries, produced and manipulated along the workflow from downloading from a
@@ -55,14 +47,11 @@ produced by the code
 - "Rmds" contains .rmd documents comprised of text and code developed for this
 project. 
 
-It should be possible to run all scripts in "code/" from the parent directory to
-recreate all analyses and figures in the published MS. For archived files,
-mileage will vary; we recommend reaching out to the authsors directly with any
-questions about this content.
+It should be possible to run all scripts in the top level of "code/" from the
+parent directory to recreate all analyses and figures in the published MS. For
+archived files, mileage will vary; we recommend reaching out to the authsors
+directly with any questions about this content.
 
-We expect that the files from the top-level of the "code" and "data" directories 
-at a minimum will be archived according to journal guidelines by the time of 
-publication. 
 
 ```
 Hill-BEF
@@ -115,10 +104,13 @@ Genung et al. 2022 data are not subject to copyright and are available under a
 CC 1.0 license from
 [https://datadryad.org/stash/dataset/doi:10.5061/dryad.qnk98sfkc](Dryad)
 
-The data from the now-defunct TEAM network ...
+The data from Cavanaugh et al. 2014 GEB was originally available from the
+now-defunct TEAM network. We are republishing these data to make them available
+again. We reached out to data holders to discuss this.
 
 Other materials (e.g. code, figures) present here are freely available under a
-CC BY 4.0 license. You can cite this dataset by ...
+CC BY 4.0 license. You can cite this dataset by ...(to be updated upon article 
+acceptance)
 
 
 
