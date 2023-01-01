@@ -184,6 +184,41 @@ tag_facet(f3, open = NULL, close = NULL) + theme(strip.text.x = element_text(siz
 
 dev.off()
 
+pdf("figures/Fig3_D-EF_cor_SPEARMAN.pdf", width = 6.5, height = 2.5)
+f3 <- bef_cors %>% 
+  group_by(syst) %>% 
+  left_join(clr_tab) %>% 
+  mutate(study_plus = factor(study_plus
+                             , levels = c("bee_pollination"
+                                          , "reef_fish_temperate"
+                                          , "reef_fish_tropical"
+                                          , "tree_carbon"))) %>%  
+  ggplot(aes(ell, EF.cor.spe, color = clr))+
+  # get ref lines on first so they don't overlap anything
+  geom_hline(yintercept = 0, size = 0.2)  +
+  geom_vline(xintercept = 1, size = 1) +
+  geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
+  geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
+  geom_line(size = 0.7) +
+  facet_grid(~study_plus
+             , labeller = labeller(study_plus = lab_clean)) +
+  theme_classic()+
+  # scale_color_manual(values = hcl.colors(16, "hawaii")) +
+  scale_color_viridis_d(option = "plasma") +
+  theme(legend.position = "none"
+        , panel.spacing = unit(1.1, "lines")
+        , strip.background = element_blank()
+        # , strip.text.x = element_blank() #element_text(vjust = 1, hjust = 0.3 )
+  )+ 
+  xlim(-5,5) +
+  labs(x = "Hill diversity scaling factor (ell)"
+       , y = "\nBEF correlation") 
+
+tag_facet(f3, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
+
+dev.off()
+
+
 # D-ab and D-pcf graph
 pdf("figures/Fig4_EF_cor_partions.pdf", width = 6.5, height = 4.8) 
 # note that the height is klugey, should be fixed. 

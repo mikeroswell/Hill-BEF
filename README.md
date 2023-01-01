@@ -24,10 +24,28 @@ MS. Upon article acceptance, the relevant components will be migrated to a
 permanent archive (e.g., Dryad & Figshare).
 
 # Keywords 
-abundance, biodiversity, diversity profile, ecosystem function, Hill number, rarity
+abundance, biodiversity, diversity profile, ecosystem function, Hill number,
+rarity
 
 # Summary 
-Motivated by accelerating anthropogenic extinctions, decades of biodiversity-ecosystem function (BEF) experiments show that ecosystem function declines with species loss from local communities. Yet, at the local scale, changes in species’ total and relative abundances are more common than species loss. The consensus best biodiversity measures are Hill numbers, which use a scaling parameter, ℓ, to emphasize rarer versus more common species. Shifting that emphasis captures distinct, function-relevant biodiversity gradients beyond species richness. Here, we surmised that Hill numbers that emphasize rare species more than richness may distinguish large, complex, and presumably higher-functioning assemblages from smaller and simpler ones. In this study, we tested which values of ℓ produce the strongest BEF relationships in community datasets of ecosystem functions provided by wild, free-living organisms. We found that ℓ values that emphasized rare species more than richness most often correlated most strongly with ecosystem functions. As emphasis shifted to more common species, BEF correlations were often weak and/or negative. We argue that unconventional Hill diversities that shift emphasis towards rarer species may be useful for describing biodiversity change, and that employing a wide spectrum of Hill numbers can clarify mechanisms underlying BEF relationships. 
+Motivated by accelerating anthropogenic extinctions, decades of
+biodiversity-ecosystem function (BEF) experiments show that ecosystem function
+declines with species loss from local communities. Yet, at the local scale,
+changes in species’ total and relative abundances are more common than species
+loss. The consensus best biodiversity measures are Hill numbers, which use a
+scaling parameter, ℓ, to emphasize rarer versus more common species. Shifting
+that emphasis captures distinct, function-relevant biodiversity gradients beyond
+species richness. Here, we surmised that Hill numbers that emphasize rare
+species more than richness may distinguish large, complex, and presumably
+higher-functioning assemblages from smaller and simpler ones. In this study, we
+tested which values of ℓ produce the strongest BEF relationships in community
+datasets of ecosystem functions provided by wild, free-living organisms. We
+found that ℓ values that emphasized rare species more than richness most often
+correlated most strongly with ecosystem functions. As emphasis shifted to more
+common species, BEF correlations were often weak and/or negative. We argue that
+unconventional Hill diversities that shift emphasis towards rarer species may be
+useful for describing biodiversity change, and that employing a wide spectrum of
+Hill numbers can clarify mechanisms underlying BEF relationships.
 
 
 # Repo Organization
