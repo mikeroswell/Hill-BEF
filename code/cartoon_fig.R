@@ -41,13 +41,16 @@ dp <- D.dat %>%
   geom_vline(xintercept = c(-1:1), linetype = c(3:1)) +
   geom_line(size = 1.2) +
 
-  labs(x = "Hill diversity scaling factor (ell)" 
+  labs(x = "Hill diversity scaling factor, \"\U2113\"" 
        , y = "diversity"
        , color = "community") +
   theme_classic()
 
 # print to .pdf for full-page spread using patchwork
-pdf("figures/cartoon_fig_horizontal.pdf", height = 2.5, width = 6.5)
+quartz(file = "figures/cartoon_fig_horizontal.pdf"
+       , height = 2.5
+       , width = 6.5
+       , type = "pdf")
 bp +
   theme(plot.tag.position  = c(.22, 1.02) # klugey numbers
         , text = element_text(face = "bold", size = 0.8*11)
@@ -65,3 +68,4 @@ dp +
 plot_annotation(tag_levels = 'a')
 
 dev.off()
+

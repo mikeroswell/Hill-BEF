@@ -30,7 +30,7 @@ ell_vec<-seq(-10, 10, 0.05)
 # set number of "cores" to use for parallelization
 # on intel mac at least, hyperthreading is used so the maximum is double the 
 # number of physical cores
-nc <- 7
+nc <- 9
 
 
 
@@ -150,7 +150,10 @@ bef_cors <- read.csv("data/bef_correlations.csv")
 lab_clean <- function(x){str_replace(x, "_", " ") %>% 
                                   str_replace("_", " \\*")}
 
-pdf("figures/Fig3_D-EF_cor.pdf", width = 6.5, height = 2.5)
+quartz(file = "figures/Fig3_D-EF_cor.pdf"
+       , width = 6.5
+       , height = 2.5
+       , type = "pdf")
 f3 <- bef_cors %>% 
   group_by(syst) %>% 
   left_join(clr_tab) %>% 
@@ -174,17 +177,20 @@ f3 <- bef_cors %>%
   theme(legend.position = "none"
         , panel.spacing = unit(1.1, "lines")
         , strip.background = element_blank()
+        , strip.placement = "outside"
         # , strip.text.x = element_blank() #element_text(vjust = 1, hjust = 0.3 )
         )+ 
   xlim(-5,5) +
-  labs(x = "Hill diversity scaling factor (ell)"
+  labs(x = "Hill diversity scaling factor, \"\U2113\""
        , y = "\nBEF correlation") 
 
-tag_facet(f3, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
+tag_facet(f3, open = NULL, close = NULL) + 
+  theme(strip.text.x = element_text(size = rel(0.8)
+                                    , margin = margin(b = 5)))
 
 dev.off()
 
-pdf("figures/Fig3_D-EF_cor_SPEARMAN.pdf", width = 6.5, height = 2.5)
+quartz(file = "figures/Fig3_D-EF_cor_SPEARMAN.pdf", width = 6.5, height = 2.5, type = "pdf")
 f3 <- bef_cors %>% 
   group_by(syst) %>% 
   left_join(clr_tab) %>% 
@@ -211,16 +217,21 @@ f3 <- bef_cors %>%
         # , strip.text.x = element_blank() #element_text(vjust = 1, hjust = 0.3 )
   )+ 
   xlim(-5,5) +
-  labs(x = "Hill diversity scaling factor (ell)"
+  labs(x = "Hill diversity scaling factor \"\U2113\""
        , y = "\nBEF correlation") 
 
-tag_facet(f3, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
+tag_facet(f3, open = NULL, close = NULL) + 
+  theme(strip.text.x = element_text(size = rel(0.8)
+                                    , margin = margin(b = 5)))
 
 dev.off()
 
 
 # D-ab and D-pcf graph
-pdf("figures/Fig4_EF_cor_partions.pdf", width = 6.5, height = 4.8) 
+quartz(file = "figures/Fig4_EF_cor_partions.pdf"
+       , width = 6.5
+       , height = 4.8
+       , type = "pdf") 
 # note that the height is klugey, should be fixed. 
 
 f4 <- bef_cors %>% 
@@ -262,10 +273,12 @@ f4 <- bef_cors %>%
          , strip.background = element_blank()
          , axis.title.y = element_blank()
          ) + 
-  labs(x = "Hill diversity scaling factor (ell)") +
+  labs(x = "Hill diversity scaling factor, \"\U2113\"") +
   xlim(-5,5)
 
-tag_facet(f4, open = NULL, close = NULL) + theme(strip.text.x = element_text(size = rel(0.8)))
+tag_facet(f4, open = NULL, close = NULL) + 
+  theme(strip.text.x = element_text(size = rel(0.8)
+                                    , margin = margin(b = 5)))
 dev.off()
 
 
@@ -316,7 +329,9 @@ bef_cors %>%
   ungroup() %>% 
   summarize(mean(best_ell))
 
-pdf("figures/Fig2_variant_best_ell_histogram_with_r2_shading.pdf", width = 4.5, height = 3.5)
+pdf("figures/Fig2_variant_best_ell_histogram_with_r2_shading.pdf"
+    , width = 4.5, height = 3.5)
+
 bef_cors %>%
   mutate(study_plus = factor(study_plus 
                            , levels = c("bee_pollination"
@@ -341,12 +356,15 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme_classic() +
-  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
+  labs(x = "Hill diversity scaling factor \U2113 \nwith highest BEF correlation"
        , y = "community datasets", fill = "system", alpha = "best_R2" ) +
   guides(color = "none")
 dev.off()
 
-pdf("figures/Fig2_solid_best_ell_histogram.pdf", width = 4.5, height = 3.5)
+quartz(file = "figures/Fig2_solid_best_ell_histogram.pdf"
+       , width = 4.5
+       , height = 3.5
+       , type = "pdf")
 bef_cors %>%
   mutate(study_plus = factor(study_plus 
                              , levels = c("bee_pollination"
@@ -371,7 +389,7 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme_classic() +
-  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
+  labs(x = "Hill diversity scaling factor, \"\U2113\" \nwith highest BEF correlation"
        , y = "community datasets", fill = "system"
        # , alpha = "best_R2" 
        ) +
@@ -410,12 +428,15 @@ bef_cors %>%
   theme(panel.grid.major = element_blank()
         , panel.grid.minor = element_blank()
         , strip.background = element_blank()) +
-  labs(x = "Hill diversity scaling factor (ell) \nwith highest BEF correlation"
+  labs(x = "Hill diversity scaling factor, \"\U2113\" \nwith highest BEF correlation"
        , y = bquote('BEF '*r^2*''), shape = "system", fill = "system" ) 
 dev.off()
 # just diversity
 # D-ab and D-pcf graph
-pdf("figures/diversity_profiles.pdf", width = 4.5, height = 4) 
+quartz(file = "figures/S1_diversity_profiles.pdf"
+       , width = 4.5
+       , height = 4
+       , type = "pdf") 
 
 bef_by_ell %>% 
   group_by(study_plus) %>% 
@@ -440,7 +461,8 @@ bef_by_ell %>%
   theme( legend.position = "none"
          , panel.spacing = unit(1, "lines"))+ 
   xlim(-5,5) +
-  scale_y_log10()
+  scale_y_log10() +
+  labs(x = "Hill diversity scaling factor, \"\U2113\"", y = "Hill diversity")
 dev.off()
 
 
