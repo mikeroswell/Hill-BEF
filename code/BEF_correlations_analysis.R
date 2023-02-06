@@ -79,7 +79,7 @@ sum_by_ell <- function(dat
 
 # times the crunching, if you want
 tictoc::tic()
-future::plan(strategy = "multiprocess", workers = nc)
+future::plan(strategy = "multisession", workers = nc)
 bef_by_ell <- sum_by_ell(bef_data %>% group_by(site, syst, study, study_plus), ell_vec = ell_vec )
 
 tictoc::toc()
@@ -89,7 +89,8 @@ write.csv(bef_by_ell, "data/bef_by_ell.csv", row.names = FALSE)
 
 fit_lms <- function(sub){
   furrr::future_map_dfr(ell_vec, function(ell){
-    dat = sub %>% filter(ell == !!ell) 
+    ell <- round(ell, digits = 5)
+    dat = sub %>% filter(round(ell, digits = 5) == !!ell) 
     # was struggling with the quoting stuff, the !! fixes
     abMod = lm(Ln(dat$ab) ~ Ln(dat$D))
     pcfMod = lm(Ln(dat$pcf) ~ Ln(dat$D))
@@ -493,25 +494,25 @@ bef_cors %>%
 dev.off()
 
   
-# slopes and counterfactuals in blue, black, and red
-pdf("figures/lefcheck_partitions.pdf")
-map(unique(first_out$Province), function(province){
-  first_out %>% 
-    filter(Province == !!province) %>%
-    pivot_longer(cols = ends_with(".slope")
-                 , values_to = "slope"
-                 , names_to ="component") %>% 
-    ggplot(aes(ell, slope, color = component))+
-    geom_line()+
-    theme_classic()+
-    geom_hline(yintercept = 0, size = 0.2)  +
-    geom_vline(xintercept = 1, size = 0.2) +
-    scale_color_manual(values = c("red", "black", "blue")) +
-    ggtitle(province)
-    
-})
-
-dev.off()
+# # slopes and counterfactuals in blue, black, and red
+# pdf("figures/lefcheck_partitions.pdf")
+# map(unique(first_out$Province), function(province){
+#   first_out %>% 
+#     filter(Province == !!province) %>%
+#     pivot_longer(cols = ends_with(".slope")
+#                  , values_to = "slope"
+#                  , names_to ="component") %>% 
+#     ggplot(aes(ell, slope, color = component))+
+#     geom_line()+
+#     theme_classic()+
+#     geom_hline(yintercept = 0, size = 0.2)  +
+#     geom_vline(xintercept = 1, size = 0.2) +
+#     scale_color_manual(values = c("red", "black", "blue")) +
+#     ggtitle(province)
+#     
+# })
+# 
+# dev.off()
 
 # quick data explorations to support some results text
 # what is the range of correlations for ell>1 for bee data?
@@ -556,7 +557,7 @@ bef_cors %>%
 bef_cors %>% 
   ggplot(aes(ell, ab.cor^2, color = study_plus))+ 
   geom_point() +
-  theme_classic() +
+  theme_classic() 
 
 
 # T.test stuff
