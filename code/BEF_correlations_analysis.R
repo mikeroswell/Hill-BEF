@@ -389,7 +389,7 @@ bef_cors %>%
   geom_vline(xintercept = 0, size = 1, linetype = "dashed") +
   geom_vline(xintercept = -1, size = 1, linetype = "dotted") +
   theme_classic() +
-  labs(x = "Hill diversity scaling factor, \"\U2113\" \nwith highest BEF correlation"
+  labs(x = "Hill diversity scaling factor, \"\U2113\" \nwith strongest BEF correlation"
        , y = "community datasets", fill = "system"
        # , alpha = "best_R2" 
        ) +

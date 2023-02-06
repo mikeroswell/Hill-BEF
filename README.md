@@ -1,10 +1,7 @@
-# Hill-BEF
-
-Hill diversities other than richness might predict ecosystem function better --
-which scaling exponent is best?
+# Biodiversity-ecosystem function relationships change in sign and magnitude across the Hill diversity spectrum
 
 
-# Contributing authors
+## Contributing authors
 
 Michael Roswell1 mroswell@umd.edu
 Tina Harrison2 tinaharrison09@gmail.com
@@ -14,7 +11,7 @@ Mark A. Genung2  mark.genung@louisiana.edu
 1. Dept of Biology, University of Louisiana, Lafayette, LA 70503, USA
 
 
-# Synopsis 
+## Synopsis 
 
 This repository contains data and code for our submission to the Phil Trans RSB
 special issue on Biodiversity monitoring, "Biodiversity-ecosystem function
@@ -23,11 +20,11 @@ The repo also contains lots of notes and the starts of ideas that are not in the
 MS. Upon article acceptance, the relevant components will be migrated to a
 permanent archive (e.g., Dryad & Figshare).
 
-# Keywords 
+## Keywords 
 abundance, biodiversity, diversity profile, ecosystem function, Hill number,
 rarity
 
-# Summary 
+## Summary 
 Motivated by accelerating anthropogenic extinctions, decades of
 biodiversity-ecosystem function (BEF) experiments show that ecosystem function
 declines with species loss from local communities. Yet, at the local scale,
@@ -48,12 +45,12 @@ useful for describing biodiversity change, and that employing a wide spectrum of
 Hill numbers can clarify mechanisms underlying BEF relationships.
 
 
-# Repo Organization
+## Repo Organization
 
 Four directories. Anything used in the published manuscript is contained in
 "code", "data", or possibly "figures". "Rmds" contains notes and ideas not
 included directly in the MS. Within the three directories with
-publication-relevatnt content, the content for the published MS will be at the
+publication-relevant content, the content for the published MS will be at the
 top level of the directories, additional files from manuscript preparation may
 be found in "archive" subdirectories.
 - "code/" contains .R files for data wrangling, analysis, and producing figures. 
@@ -67,9 +64,10 @@ project.
 
 It should be possible to run all scripts in the top level of "code/" from the
 parent directory to recreate all analyses and figures in the published MS. For
-archived files, mileage will vary; we recommend reaching out to the authsors
+archived files, mileage will vary; we recommend reaching out to the authors
 directly with any questions about this content.
 
+## File organization
 
 ```
 Hill-BEF
@@ -103,10 +101,13 @@ Hill-BEF
 |     | bef_data_for_analyses.csv # harmonized data for analyses
 |
 ----- figures
-|      | basic_simulation_heatmaps.pdf # output from simluation_correlations_basic.R
+|      | # this directory contains many .pdf outputs that can be recreated with code.
 |
 ----- Rmds
 |     | Hill_Postulae.Rmd # some general properties of Hill numbers
+|     | Jensens_inequality_with_weights.Rmd # sketch of Jensen's inequality
+|     | empirical_ellBEF.Rmd # notes and snippets used in MS prep
+|     | lefcheck_data_notes.Rmd # super early-stage project notes
 
 ```
 
