@@ -11,7 +11,7 @@ psw_wlab.R
 
 # User-specific files
 .Ruserdata
-.Rproj
+*.Rproj
 
 
 # Example code in package build process
