@@ -14,8 +14,9 @@ Mark A. Genung2  mark.genung@louisiana.edu
 ## Synopsis 
 
 This repository contains data and code for our submission to the Phil Trans RSB
-special issue on Biodiversity monitoring, "Biodiversity-ecosystem function
-relationships change in sign and magnitude across the Hill diversity spectrum".
+special issue on Biodiversity monitoring, ["Biodiversity-ecosystem function
+relationships change in sign and magnitude across the Hill diversity spectrum"](
+https://royalsocietypublishing.org/doi/10.1098/rstb.2022.0186).
 The repo also contains lots of notes and the starts of ideas that are not in the
 MS. Upon article acceptance, the relevant components were migrated to 
 [Zenodo](https://zenodo.org/doi/10.5281/zenodo.7846422)
