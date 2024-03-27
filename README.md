@@ -17,8 +17,8 @@ This repository contains data and code for our submission to the Phil Trans RSB
 special issue on Biodiversity monitoring, "Biodiversity-ecosystem function
 relationships change in sign and magnitude across the Hill diversity spectrum".
 The repo also contains lots of notes and the starts of ideas that are not in the
-MS. Upon article acceptance, the relevant components will be migrated to a
-permanent archive (e.g., Dryad & Figshare).
+MS. Upon article acceptance, the relevant components were migrated to 
+[Zenodo](https://zenodo.org/doi/10.5281/zenodo.7846422)
 
 ## Keywords 
 abundance, biodiversity, diversity profile, ecosystem function, Hill number,
@@ -128,8 +128,8 @@ now-defunct TEAM network. We are republishing these data to make them available
 again. We reached out to data holders to discuss this.
 
 Other materials (e.g. code, figures) present here are freely available under a
-CC BY 4.0 license. You can cite this dataset by ...(to be updated upon article 
-acceptance)
+CC BY 4.0 license. You can download and cite the version of record from Zenodo 
+at https://zenodo.org/doi/10.5281/zenodo.7846422
 
 
 
